@@ -203,7 +203,11 @@ public partial class MemberMeta
             IsField = true;
             MemberType = f.Type;
             IsReadOnly = f.IsReadOnly;
+#if ROSLYN_UNITY
+            IsAssignable = f is { IsReadOnly: false };
+#else
             IsAssignable = f is { IsReadOnly: false, IsRequired: false };
+#endif
         }
         else if (symbol is IPropertySymbol p)
         {
@@ -211,7 +215,11 @@ public partial class MemberMeta
             IsField = false;
             MemberType = p.Type;
             IsReadOnly = p.IsReadOnly;
+#if ROSLYN_UNITY
+            IsAssignable = p is { IsReadOnly: false, SetMethod.IsInitOnly: false };
+#else
             IsAssignable = p is { IsReadOnly: false, IsRequired: false, SetMethod.IsInitOnly: false };
+#endif
         }
         else
         {

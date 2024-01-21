@@ -1,7 +1,9 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Magus.Core.Internal;
@@ -32,7 +34,7 @@ namespace Magus
             var source = FastSort(datasource, selector, comparer);
 
             using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Utf8);
-            var writer = new MemoryPackWriter(ref _bufferWriter, state);
+            var writer = new MemoryPackWriter(ref Unsafe.As<ByteBufferWriter, IBufferWriter<byte>>(ref _bufferWriter), state);
             
             var offset = _bufferWriter.CurrentOffset;
             MemoryPackSerializer.Serialize(ref writer, source);

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Magus.Generator;
 
 [Generator(LanguageNames.CSharp)]
-public partial class Generator : IIncrementalGenerator
+public partial class MagusGenerator : IIncrementalGenerator
 {
     public const string MagusTableAttributeFullName = "Magus.MagusTableAttribute";
     public void Initialize(IncrementalGeneratorInitializationContext context)

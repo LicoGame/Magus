@@ -22,7 +22,7 @@ public class ReferenceSymbols
     {
         Compilation = compilation;
         
-        MagusTableAttribute = Compilation.GetTypeByMetadataName(Generator.MagusTableAttributeFullName)!;
+        MagusTableAttribute = Compilation.GetTypeByMetadataName(MagusGenerator.MagusTableAttributeFullName)!;
         PrimaryKeyAttribute = Compilation.GetTypeByMetadataName("Magus.PrimaryKeyAttribute")!;
         IndexAttribute = Compilation.GetTypeByMetadataName("Magus.IndexAttribute")!;
         MagusConstructorAttribute = Compilation.GetTypeByMetadataName("Magus.MagusConstructorAttribute")!;

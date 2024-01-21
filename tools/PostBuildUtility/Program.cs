@@ -12,7 +12,8 @@ public class Runner : ConsoleAppBase
         var replaceSet = new Dictionary<string, string>
         {
             // Remove generics cuz removed by MemoryPack
-            { "<ByteBufferWriter>", "" }
+            { "<ByteBufferWriter>", "" },
+            { "new MemoryPackWriter(ref _bufferWriter", "new MemoryPackWriter(ref Unsafe.As<ByteBufferWriter, IBufferWriter<byte>>(ref _bufferWriter)"}
         };
         
         System.Console.WriteLine("Start to modify code.");

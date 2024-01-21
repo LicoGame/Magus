@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magus.Generator", "src\Magu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostBuildUtility", "tools\PostBuildUtility\PostBuildUtility.csproj", "{3F735926-3180-45C1-A63D-A1DBE0347845}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magus.Generator.RoslynUnity", "src\Magus.Generator.RoslynUnity\Magus.Generator.RoslynUnity.csproj", "{0066F161-37CD-4923-89D6-4CB531064B70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{3F735926-3180-45C1-A63D-A1DBE0347845}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F735926-3180-45C1-A63D-A1DBE0347845}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F735926-3180-45C1-A63D-A1DBE0347845}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0066F161-37CD-4923-89D6-4CB531064B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0066F161-37CD-4923-89D6-4CB531064B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0066F161-37CD-4923-89D6-4CB531064B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0066F161-37CD-4923-89D6-4CB531064B70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

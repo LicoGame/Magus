@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Magus.Generator;
 
-public partial class Generator
+public partial class MagusGenerator
 {
     private static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, GeneratorContext context)
     {
@@ -96,6 +96,9 @@ public partial class Generator
             .Distinct()
             .Select(v => $"using {v};")
             .ToArray();
+
+        if (metas.Length == 0)
+            return;
         
         {
             var sb = new IndentedStringBuilder();
