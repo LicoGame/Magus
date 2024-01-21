@@ -22,7 +22,7 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           unityVersion: 2022.3.9f1
-          projectPath: ./src/Magus.Unity
+          projectPath: ./Workspace/src/Magus.Unity
           containerVersion: 2
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
