@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Magus.Test</RootNamespace>
+        <AssemblyName>Magus.Test</AssemblyName>
+        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>11</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Bogus" Version="35.4.0" />
+      <PackageReference Include="ComparableGenerator" Version="1.2.1" />
+      <PackageReference Include="Generator.Equals" Version="3.0.0" />
+      <PackageReference Include="MemoryPack" Version="1.10.0" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+      <PackageReference Include="Moq" Version="4.20.70" />
+      <PackageReference Include="NUnit" Version="3.14.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Magus.Generator\Magus.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+      <ProjectReference Include="..\Magus\Magus.csproj" />
+    </ItemGroup>
+</Project>

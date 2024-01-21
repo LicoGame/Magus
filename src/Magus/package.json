@@ -1,0 +1,10 @@
+{
+  "name": "org.lico.megus.core",
+  "description": "In-Memory MasterData Database",
+  "version": "0.1.0",
+  "unity": "2022.2",
+  "displayName": "Lico.Magus.Core",
+  "dependencies": {
+    "com.cysharp.memorypack" : "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.10.0"
+  }
+}
