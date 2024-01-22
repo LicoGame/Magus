@@ -1,0 +1,11 @@
+{
+  "name": "org.lico.magus.generator",
+  "description": "A package provides in-memory master data tables",
+  "version": "0.1.0",
+  "unity": "2022.2",
+  "displayName": "Lico.Magus.Generator",
+  "dependencies": {},
+  "author": {
+    "name": "Lico.org"
+  }
+}
