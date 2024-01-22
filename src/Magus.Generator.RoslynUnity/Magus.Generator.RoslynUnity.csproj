@@ -29,7 +29,7 @@
 
     <!-- Copy files for Unity -->
     <PropertyGroup>
-        <DestinationRoot>$(MSBuildProjectDirectory)\..\Magus.Unity\Assets\Scripts\Magus.Generator</DestinationRoot>
+        <DestinationRoot>$(MSBuildProjectDirectory)\..\Magus.Unity\Assets\Scripts\Magus\Plugins\Magus.Generator</DestinationRoot>
     </PropertyGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
         <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(DestinationRoot)\$(TargetFileName)" SkipUnchangedFiles="true"/>

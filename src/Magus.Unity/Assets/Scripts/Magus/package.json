@@ -4,9 +4,7 @@
   "version": "0.1.0",
   "unity": "2022.2",
   "displayName": "Lico.Magus",
-  "dependencies": {
-    "org.lico.magus.generator": "https://github.com/LicoGame/Magus.git?Path=src/Magus.Unity/Assets/Scripts/Magus.Generator"
-  },
+  "dependencies": {},
   "author": {
     "name": "Lico.org"
   }
