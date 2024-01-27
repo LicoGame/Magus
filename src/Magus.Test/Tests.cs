@@ -17,6 +17,7 @@ namespace Magus.Test
         [Index(0)] public Another Another;
         [Index(1, combinedOrder: 0)] public int CombinedId0;
         [Index(1, combinedOrder: 1)] public int CombinedId1;
+        public int[] Array;
     }
 
     [MemoryPackable, MagusTable(nameof(Item))]

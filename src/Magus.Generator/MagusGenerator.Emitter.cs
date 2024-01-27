@@ -50,7 +50,9 @@ public partial class MagusGenerator
                           using Magus;
                           """);
 
-            sb.AppendLine(typeMeta.Members.Select(v => $"using {v.ContainingNamespace};").Distinct());
+            sb.AppendLine(typeMeta.Members
+                .Where(v => v.ContainingNamespace != null)
+                .Select(v => $"using {v.ContainingNamespace};").Distinct());
 
             // Namespace
             var ns = typeMeta.Symbol.ContainingNamespace;
@@ -89,7 +91,9 @@ public partial class MagusGenerator
         var importNs = metas
             .SelectMany(m =>
             {
-                var seq = m.Members.Select(v => v.ContainingNamespace);
+                var seq = m.Members
+                    .Where(v => v.ContainingNamespace != null)
+                    .Select(v => v.ContainingNamespace);
                 return seq.Append(m.Symbol.ContainingNamespace.ToString());
             })
             .OrderBy(v => v)

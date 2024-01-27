@@ -172,14 +172,14 @@ public partial class MemberMeta
     public int IndexOrder { get; }
     public int CombinedIndexOrder { get; }
 
-    public string ContainingNamespace { get; }
+    public string? ContainingNamespace { get; }
 
     private MemberMeta()
     {
         Symbol = null!;
         Name = null!;
         MemberType = null!;
-        ContainingNamespace = null!;
+        ContainingNamespace = null;
     }
 
     public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references)
@@ -226,7 +226,7 @@ public partial class MemberMeta
             throw new Exception("Unknown symbol type");
         }
 
-        ContainingNamespace = MemberType.ContainingNamespace.ToDisplayString();
+        ContainingNamespace = MemberType.ContainingNamespace?.ToDisplayString();
 
         var primaryKeyAttribute = symbol.GetAttribute(references.PrimaryKeyAttribute);
         IsPrimaryKey = primaryKeyAttribute != null;
