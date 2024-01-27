@@ -19,7 +19,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: "src/Magus.Unity/Assets/Scripts/Magus"
-      - name: "cat package.json"
+      - name: "cat src/Magus.Unity/Assets/Scripts/Magus/package.json"
         run: cat ./package.json
       - name: "Output Step"
         env:
