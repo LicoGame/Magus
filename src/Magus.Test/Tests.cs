@@ -18,6 +18,7 @@ namespace Magus.Test
         [Index(1, combinedOrder: 0)] public int CombinedId0;
         [Index(1, combinedOrder: 1)] public int CombinedId1;
         public int[] Array;
+        public Box Box;
     }
 
     [MemoryPackable, MagusTable(nameof(Item))]
@@ -25,6 +26,13 @@ namespace Magus.Test
     {
         [PrimaryKey] public int Id;
         public string Name;
+    }
+
+    [MemoryPackable]
+    public partial struct Box
+    {
+        public int Width;
+        public int Height;
     }
 
     [TestFixture]

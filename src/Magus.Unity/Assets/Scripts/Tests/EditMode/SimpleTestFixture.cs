@@ -21,6 +21,8 @@ namespace Tests.EditMode
         public int Id { get; }
         
         public string Name { get; }
+        
+        public int[] Test { get; }
 
         public bool Equals(User other)
         {
@@ -42,6 +44,21 @@ namespace Tests.EditMode
             return HashCode.Combine(Id, Name);
         }
     }
+
+    [MemoryPackable, MagusTable(nameof(Pet))]
+    public partial class Pet
+    {
+        [PrimaryKey]
+        public int Id { get; }
+
+        public Toy Toy;
+    }
+
+    [MemoryPackable]
+    public partial struct Toy
+    {
+        public string Name;
+    }
     
     [TestFixture]
     public class SimpleTestFixture
@@ -60,6 +77,13 @@ namespace Tests.EditMode
             var database = new MagusDatabase(bytes, 1);
             var actual = database.UserTable.FindById(user.Id);
             Assert.AreEqual(user, actual);
+        }
+
+        [Test]
+        public void Test02()
+        {
+            var pet = new Pet();
+            var bytes = MemoryPackSerializer.Serialize(pet);
         }
     }
 }
