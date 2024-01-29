@@ -69,6 +69,19 @@ public partial class TypeMeta
         }
     }
 
+    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context)
+    {
+        if (IsUnmanagedType)
+        {
+            sb.AppendLine($"{TypeName}.RegisterFormatter();");
+        }
+
+        foreach (var member in Members)
+        {
+            member.EmitFormatterRegister(sb, context);
+        }
+    }
+
     public void EmitBuilder(IndentedStringBuilder sb, IGeneratorContext context)
     {
         PrimaryKey.EmitBuilder(sb, context, TypeName);
@@ -208,6 +221,12 @@ public partial class MemberMeta
         using var _ = sb.Block();
         sb.AppendLine($"AppendCore(dataSource, v => v.{Name}, {Comparer(MemberType)});");
         sb.AppendLine($"return this;");
+    }
+
+    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context)
+    {
+        if (!MemberType.IsUnmanagedType || MemberType.SpecialType is not SpecialType.None) return;
+        sb.AppendLine($"{MemberType}.RegisterFormatter();");
     }
 }
 

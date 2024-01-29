@@ -119,6 +119,14 @@ public partial class MagusGenerator
                 using var _1 = context.DefineNamespace(sb, "Magus.Generated.Builder");
                 sb.AppendLine("public sealed partial class DatabaseBuilder: DatabaseBuilderBase");
                 using var _2 = sb.Block();
+                sb.AppendLine("public DatabaseBuilder()");
+                {
+                    using var _ = sb.Block();
+                    foreach (var typeMeta in metas)
+                    {
+                        typeMeta.EmitFormatterRegister(sb, context);
+                    }
+                }
                 foreach (var typeMeta in metas)
                 {
                     typeMeta.EmitBuilder(sb, context);
