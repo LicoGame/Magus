@@ -13,6 +13,7 @@ public static class Helper
             var array = (IArrayTypeSymbol)symbol;
             return $"{ResolveType(array.ElementType)}[]";
         }
+
         return symbol.SpecialType switch
         {
             SpecialType.System_Object => "object",
@@ -33,5 +34,14 @@ public static class Helper
             SpecialType.System_Array => ResolveArrayType(symbol),
             _ => symbol.Name
         };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool ShouldRegisterType(this ITypeSymbol symbol, in ReferenceSymbols referenceSymbols)
+    {
+        var isManagedStruct = symbol is { IsUnmanagedType: false, SpecialType: SpecialType.None, TypeKind: TypeKind.Struct };
+        var implementsMemoryPackable = isManagedStruct && symbol.Interfaces.Select(t => t.ConstructUnboundGenericType()).Contains(referenceSymbols.MemoryPackableInterface, SymbolEqualityComparer.Default);
+        var annotatedMemoryPackable = isManagedStruct && symbol.GetAttribute(referenceSymbols.MemoryPackableAttribute) != null;
+        return implementsMemoryPackable || annotatedMemoryPackable; 
     }
 }
