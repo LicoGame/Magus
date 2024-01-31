@@ -51,7 +51,7 @@ public partial class MagusGenerator
                           """);
 
             sb.AppendLine(typeMeta.Members
-                .Where(v => v.ContainingNamespace != null)
+                .Where(v => v.ContainingNamespace != null && v.ContainingNamespace != "System")
                 .Select(v => $"using {v.ContainingNamespace};").Distinct());
 
             // Namespace
@@ -124,7 +124,7 @@ public partial class MagusGenerator
                     using var _ = sb.Block();
                     foreach (var typeMeta in metas)
                     {
-                        typeMeta.EmitFormatterRegister(sb, context);
+                        typeMeta.EmitFormatterRegister(sb, context, referenceSymbols);
                     }
                 }
                 foreach (var typeMeta in metas)

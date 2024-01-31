@@ -5,7 +5,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Magus.Test</RootNamespace>
         <AssemblyName>Magus.Test</AssemblyName>
-        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
         <FileAlignment>512</FileAlignment>
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>

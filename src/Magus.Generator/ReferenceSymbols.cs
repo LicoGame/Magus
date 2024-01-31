@@ -9,6 +9,7 @@ public class ReferenceSymbols
     public INamedTypeSymbol PrimaryKeyAttribute { get; }
     public INamedTypeSymbol IndexAttribute { get; }
     public INamedTypeSymbol MagusConstructorAttribute { get; }
+    public INamedTypeSymbol MemoryPackableInterface { get; }
     
     #region MemoryPack
     
@@ -29,5 +30,6 @@ public class ReferenceSymbols
         MemoryPackableAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackableAttribute")!;
         MemoryPackIncludeAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute")!;
         MemoryPackIgnoreAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute")!;
+        MemoryPackableInterface = Compilation.GetTypeByMetadataName("MemoryPack.IMemoryPackable`1")!.ConstructUnboundGenericType();
     }
 }

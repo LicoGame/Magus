@@ -69,16 +69,23 @@ public partial class TypeMeta
         }
     }
 
-    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context)
+    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context, ReferenceSymbols referenceSymbols)
     {
-        if (IsUnmanagedType)
+        if (Symbol.ShouldRegisterType(referenceSymbols))
         {
-            sb.AppendLine($"{TypeName}.RegisterFormatter();");
+            if (context.Net7OrGreater)
+            {
+                sb.AppendLine($"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();");
+            }
+            else
+            {
+                sb.AppendLine($"{TypeName}.RegisterFormatter();");
+            }
         }
 
         foreach (var member in Members)
         {
-            member.EmitFormatterRegister(sb, context);
+            member.EmitFormatterRegister(sb, context, referenceSymbols);
         }
     }
 
@@ -223,10 +230,17 @@ public partial class MemberMeta
         sb.AppendLine($"return this;");
     }
 
-    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context)
+    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context, ReferenceSymbols referenceSymbols)
     {
-        if (!MemberType.IsUnmanagedType || MemberType.SpecialType is not SpecialType.None) return;
-        sb.AppendLine($"{MemberType}.RegisterFormatter();");
+        if (!MemberType.ShouldRegisterType(referenceSymbols)) return;
+        if (context.Net7OrGreater)
+        {
+            sb.AppendLine($"global::MemoryPack.MemoryPackFormatterProvider.Register<{MemberType}>();");
+        }
+        else
+        {
+            sb.AppendLine($"{MemberType}.RegisterFormatter();");
+        }
     }
 }
 
