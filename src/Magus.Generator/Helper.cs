@@ -40,7 +40,7 @@ public static class Helper
     public static bool ShouldRegisterType(this ITypeSymbol symbol, in ReferenceSymbols referenceSymbols)
     {
         var isManagedStruct = symbol is { IsUnmanagedType: false, SpecialType: SpecialType.None, TypeKind: TypeKind.Struct };
-        var implementsMemoryPackable = isManagedStruct && symbol.Interfaces.Select(t => t.ConstructUnboundGenericType()).Contains(referenceSymbols.MemoryPackableInterface, SymbolEqualityComparer.Default);
+        var implementsMemoryPackable = isManagedStruct && symbol.AllInterfaces.Select(t => t.ConstructUnboundGenericType()).Contains(referenceSymbols.MemoryPackableInterface, SymbolEqualityComparer.Default);
         var annotatedMemoryPackable = isManagedStruct && symbol.GetAttribute(referenceSymbols.MemoryPackableAttribute) != null;
         return implementsMemoryPackable || annotatedMemoryPackable; 
     }

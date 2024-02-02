@@ -6,7 +6,7 @@ namespace Magus.Generator;
 public partial class TypeMeta
 {
     public string TableName => $"{TypeName.ToPascalCase()}Table";
-    
+
     public void Emit(IndentedStringBuilder sb, IGeneratorContext context)
     {
         var signature = IsValueType switch
@@ -69,23 +69,27 @@ public partial class TypeMeta
         }
     }
 
-    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context, ReferenceSymbols referenceSymbols)
+    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context,
+        ReferenceSymbols referenceSymbols)
     {
-        if (Symbol.ShouldRegisterType(referenceSymbols))
+        try
         {
-            if (context.Net7OrGreater)
+            var collectedTypes = Members
+                .Select(m => m.MemberType)
+                .Append(Symbol)
+                .Where(v => v.ShouldRegisterType(referenceSymbols) && v is INamedTypeSymbol)
+                .Distinct(SymbolEqualityComparer.Default)
+                .Cast<INamedTypeSymbol>()
+                .ToArray();
+
+            foreach (var collectedType in collectedTypes)
             {
-                sb.AppendLine($"global::MemoryPack.MemoryPackFormatterProvider.Register<{TypeName}>();");
-            }
-            else
-            {
-                sb.AppendLine($"{TypeName}.RegisterFormatter();");
+                collectedType.EmitFormatterRegister(sb, context, referenceSymbols);
             }
         }
-
-        foreach (var member in Members)
+        catch (Exception e)
         {
-            member.EmitFormatterRegister(sb, context, referenceSymbols);
+            Console.WriteLine(e);
         }
     }
 
@@ -221,7 +225,7 @@ public partial class MemberMeta
         sb.AppendLine(
             $"return {funcName}({arrayName}, min, max, {selectorName}, {Comparer(MemberType)}, ascending);");
     }
-    
+
     public void EmitBuilder(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
     {
         sb.AppendLine($"public DatabaseBuilder Append(System.Collections.Generic.IEnumerable<{typeName}> dataSource)");
@@ -229,17 +233,48 @@ public partial class MemberMeta
         sb.AppendLine($"AppendCore(dataSource, v => v.{Name}, {Comparer(MemberType)});");
         sb.AppendLine($"return this;");
     }
+}
 
-    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context, ReferenceSymbols referenceSymbols)
+public static class EmitHelper
+{
+    public static void EmitFormatterRegister(this INamedTypeSymbol symbol, IndentedStringBuilder sb,
+        IGeneratorContext context, ReferenceSymbols referenceSymbols)
     {
-        if (!MemberType.ShouldRegisterType(referenceSymbols)) return;
         if (context.Net7OrGreater)
         {
-            sb.AppendLine($"global::MemoryPack.MemoryPackFormatterProvider.Register<{MemberType}>();");
+            sb.AppendLine($"global::MemoryPack.MemoryPackFormatterProvider.Register<{symbol}>();");
         }
         else
         {
-            sb.AppendLine($"{MemberType}.RegisterFormatter();");
+            if (symbol.GetAttribute(referenceSymbols.MemoryPackableAttribute) is not null)
+            {
+                // Call generated method
+                sb.AppendLine($"{symbol}.RegisterFormatter();");
+            }
+            else
+            {
+                // Manually constructed
+                // Lookup RegisterFormatter method from target symbol and all interfaces
+                var lookupTargets = Enumerable.Empty<INamedTypeSymbol>()
+                    .Append(symbol)
+                    .Concat(symbol.AllInterfaces)
+                    .ToArray();
+                var lookuped = false;
+                foreach (var target in lookupTargets)
+                {
+                    var method = target.GetMembers("RegisterFormatter").FirstOrDefault();
+                    if (method is not
+                        {
+                            IsStatic: true, Kind: SymbolKind.Method, DeclaredAccessibility: Accessibility.Public
+                        }) continue;
+                    // Check target class or struct or interface type is generic
+                    if (target is not { IsGenericType: true } && symbol.TypeKind is TypeKind.Interface) continue;
+                    if (target.IsGenericType && !target.TypeArguments.Contains(symbol, SymbolEqualityComparer.Default)) continue;
+                    // Call implemented RegisterFormatter method directly
+                    sb.AppendLine($"{target}.RegisterFormatter();");
+                    lookuped = true;
+                }
+            }
         }
     }
 }
@@ -332,7 +367,8 @@ public static class MemberMetaExtensions
         var arrayName = $"_{name.ToCamelCase()}Index";
         var tName = metas.GetTypeName();
         var fName = MemberMeta.SelectorFieldName(name);
-        sb.AppendLine($"public RangeView<{typeName}> FindRangeBy{name}({tName} min, {tName} max, bool ascending = true)");
+        sb.AppendLine(
+            $"public RangeView<{typeName}> FindRangeBy{name}({tName} min, {tName} max, bool ascending = true)");
         using var _ = sb.Block();
         var funcName = "FindUniqueRangeCore";
         sb.AppendLine(
@@ -346,7 +382,8 @@ public static class MemberMetaExtensions
         var arrayName = $"_{name.ToCamelCase()}Index";
         var tName = metas.GetTypeName();
         var fName = MemberMeta.SelectorFieldName(name);
-        sb.AppendLine($"public ReadOnlySpan<{typeName}> FindRangeBy{name}AsSpan({tName} min, {tName} max, bool ascending = true)");
+        sb.AppendLine(
+            $"public ReadOnlySpan<{typeName}> FindRangeBy{name}AsSpan({tName} min, {tName} max, bool ascending = true)");
         using var _ = sb.Block();
         var funcName = "FindUniqueRangeCoreAsSpan";
         sb.AppendLine(
