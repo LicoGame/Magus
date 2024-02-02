@@ -92,7 +92,7 @@ public partial class MagusGenerator
             .SelectMany(m =>
             {
                 var seq = m.Members
-                    .Where(v => v.ContainingNamespace != null)
+                    .Where(v => v.ContainingNamespace != null && v.ContainingNamespace != "System")
                     .Select(v => v.ContainingNamespace);
                 return seq.Append(m.Symbol.ContainingNamespace.ToString());
             })

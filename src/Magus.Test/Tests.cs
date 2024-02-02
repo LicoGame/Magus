@@ -45,87 +45,6 @@ namespace Magus.Test
         public int Height;
     }
 
-    public struct ManagedStruct : IMemoryPackable<ManagedStruct>
-    {
-        public string Value;
-
-#if NET7_0_OR_GREATER
-
-        public static void RegisterFormatter()
-        {
-        }
-
-        static ManagedStruct()
-        {
-            MemoryPackFormatterProvider.Register<ManagedStruct>();
-        }
-
-        [global::MemoryPack.Internal.Preserve]
-        static void IMemoryPackable<ManagedStruct>.Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,
-            scoped ref ManagedStruct value)
-        {
-            writer.WriteString(value.Value);
-        }
-
-        [global::MemoryPack.Internal.Preserve]
-        static void IMemoryPackable<ManagedStruct>.Deserialize(ref MemoryPackReader reader,
-            scoped ref ManagedStruct value)
-        {
-            var str = reader.ReadString()!;
-            value = new ManagedStruct { Value = str };
-        }
-#else
-        static ManagedStruct()
-        {
-            RegisterFormatter();
-        }
-        
-        [global::MemoryPack.Internal.Preserve]
-        public static void RegisterFormatter()
-        {
-            if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<ManagedStruct>())
-            {
-                global::MemoryPack.MemoryPackFormatterProvider.Register(new ManagedStructFormatter());
-            }
-            if (!global::MemoryPack.MemoryPackFormatterProvider.IsRegistered<ManagedStruct[]>())
-            {
-                global::MemoryPack.MemoryPackFormatterProvider.Register(new global::MemoryPack.Formatters.ArrayFormatter<ManagedStruct>());
-            }
-
-        }
-        
-        [global::MemoryPack.Internal.Preserve]
-        public static void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ManagedStruct value) where TBufferWriter : class, System.Buffers.IBufferWriter<byte>
-        {
-            writer.WriteString(value.Value);
-        }
-        
-        [global::MemoryPack.Internal.Preserve]
-        public static void Deserialize(ref MemoryPackReader reader, scoped ref ManagedStruct value)
-        {
-            var str = reader.ReadString()!;
-            value = new ManagedStruct { Value = str };
-        }
-        
-        [global::MemoryPack.Internal.Preserve]
-        sealed class ManagedStructFormatter : MemoryPackFormatter<ManagedStruct>
-        {
-            [global::MemoryPack.Internal.Preserve]
-            public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,  scoped ref ManagedStruct value)
-            {
-                ManagedStruct.Serialize(ref writer, ref value);
-            }
-            
-            [global::MemoryPack.Internal.Preserve]
-            public override void Deserialize(ref MemoryPackReader reader, scoped ref ManagedStruct value)
-            {
-                ManagedStruct.Deserialize(ref reader, ref value);
-            }
-
-        }
-#endif
-    }
-
     [TestFixture]
     public class Tests
     {
@@ -150,7 +69,7 @@ namespace Magus.Test
             var binary = builder.Build();
             var master = new MagusDatabase(binary, 1);
             var actual = master.UserTable.FindById(user.Id);
-            Assert.AreEqual(user, actual);
+            Assert.That(user, Is.EqualTo(actual));
         }
     }
 }
