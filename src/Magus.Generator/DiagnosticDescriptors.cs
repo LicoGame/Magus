@@ -95,4 +95,14 @@ public class DiagnosticDescriptors
             category: Category,
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static DiagnosticDescriptor UnexpectedError(Exception e) =>
+        new DiagnosticDescriptor(
+            id: "MAGUS999",
+            title: "Unexpected error",
+            messageFormat: e.Message,
+            category: Category,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
 }

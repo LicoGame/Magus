@@ -69,33 +69,20 @@ public partial class TypeMeta
         }
     }
 
-    public void EmitFormatterRegister(IndentedStringBuilder sb, IGeneratorContext context,
-        ReferenceSymbols referenceSymbols)
-    {
-        try
-        {
-            var collectedTypes = Members
-                .Select(m => m.MemberType)
-                .Append(Symbol)
-                .Where(v => v.ShouldRegisterType(referenceSymbols) && v is INamedTypeSymbol)
-                .Distinct(SymbolEqualityComparer.Default)
-                .Cast<INamedTypeSymbol>()
-                .ToArray();
-
-            foreach (var collectedType in collectedTypes)
-            {
-                collectedType.EmitFormatterRegister(sb, context, referenceSymbols);
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-    }
-
     public void EmitBuilder(IndentedStringBuilder sb, IGeneratorContext context)
     {
         PrimaryKey.EmitBuilder(sb, context, TypeName);
+    }
+
+    public void EmitLazyBuilder(IndentedStringBuilder sb, IGeneratorContext context)
+    {
+        sb.AppendLine($"private System.Collections.Generic.List<{TypeName}> _lazyBuffer{TypeName} = new();");
+        sb.AppendLine($"public void Append(System.Collections.Generic.IEnumerable<{TypeName}> dataSource) => _lazyBuffer{TypeName}.AddRange(dataSource);");
+    }
+    
+    public void EmitLazyBuilderAppendCore(IndentedStringBuilder sb, IGeneratorContext context)
+    {
+        PrimaryKey.EmitLazyBuilderAppendCore(sb, context, TypeName);
     }
 }
 
@@ -232,6 +219,11 @@ public partial class MemberMeta
         using var _ = sb.Block();
         sb.AppendLine($"AppendCore(dataSource, v => v.{Name}, {Comparer(MemberType)});");
         sb.AppendLine($"return this;");
+    }
+    
+    public void EmitLazyBuilderAppendCore(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    {
+        sb.AppendLine($"AppendCore(_lazyBuffer{typeName}, v => v.{Name}, {Comparer(MemberType)});");
     }
 }
 

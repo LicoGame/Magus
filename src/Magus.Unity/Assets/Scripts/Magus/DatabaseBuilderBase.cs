@@ -1,8 +1,10 @@
 using System;
+// ReSharper disable once RedundantUsingDirective
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+// ReSharper disable once RedundantUsingDirective
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -31,7 +33,7 @@ namespace Magus
 
             if (datasource == null!) return;
             
-            var source = FastSort(datasource, selector, comparer);
+            var source = Helper.FastSort(datasource, selector, comparer);
 
             using var state = MemoryPackWriterOptionalStatePool.Rent(MemoryPackSerializerOptions.Utf8);
             var writer = new MemoryPackWriter(ref Unsafe.As<ByteBufferWriter, IBufferWriter<byte>>(ref _bufferWriter), state);
@@ -41,40 +43,6 @@ namespace Magus
             var count = _bufferWriter.CurrentOffset - offset;
             
             _header.Add(tableName.TableName, (offset, count));
-        }
-        
-        static TElement[] FastSort<TElement, TKey>(IEnumerable<TElement> datasource, Func<TElement, TKey> indexSelector, IComparer<TKey> comparer)
-        {
-            var collection = datasource as ICollection<TElement>;
-            if (collection != null)
-            {
-                var array = new TElement[collection.Count];
-                var sortSource = new TKey[collection.Count];
-                var i = 0;
-                foreach (var item in collection)
-                {
-                    array[i] = item;
-                    sortSource[i] = indexSelector(item);
-                    i++;
-                }
-                Array.Sort(sortSource, array, 0, collection.Count, comparer);
-                return array;
-            }
-            else
-            {
-                var array = new ExpandableArray<TElement>(null);
-                var sortSource = new ExpandableArray<TKey>(null);
-                foreach (var item in datasource)
-                {
-                    array.Add(item);
-                    sortSource.Add(indexSelector(item));
-                }
-
-                Array.Sort(sortSource.items, array.items, 0, array.count, comparer);
-
-                Array.Resize(ref array.items, array.count);
-                return array.items;
-            }
         }
 
         public async ValueTask<byte[]> BuildAsync()
@@ -93,6 +61,7 @@ namespace Magus
 
         public async ValueTask WriteToStreamAsync(Stream stream)
         {
+            await OnPreprocessAsync();
             await MemoryPackSerializer.SerializeAsync(stream, _header);
             MemoryMarshal.TryGetArray(_bufferWriter.WrittenMemory, out var segment);
             await stream.WriteAsync(segment.Array!, segment.Offset, segment.Count);
@@ -100,9 +69,12 @@ namespace Magus
         
         public void WriteToStream(Stream stream)
         {
+            OnPreprocessAsync().AsTask().Wait();
             MemoryPackSerializer.SerializeAsync(stream, _header).AsTask().Wait();
             MemoryMarshal.TryGetArray(_bufferWriter.WrittenMemory, out var segment);
             stream.Write(segment.Array!, segment.Offset, segment.Count);
         }
+        
+        protected virtual ValueTask OnPreprocessAsync() => default;
     }
 }
