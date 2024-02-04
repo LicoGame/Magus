@@ -1,7 +1,7 @@
 {
   "name": "org.lico.magus",
   "description": "A package provides in-memory master data tables",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "unity": "2022.2",
   "displayName": "Lico.Magus",
   "dependencies": {
