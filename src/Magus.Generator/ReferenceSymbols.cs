@@ -23,13 +23,23 @@ public class ReferenceSymbols
     {
         Compilation = compilation;
         
-        MagusTableAttribute = Compilation.GetTypeByMetadataName(MagusGenerator.MagusTableAttributeFullName)!;
-        PrimaryKeyAttribute = Compilation.GetTypeByMetadataName("Magus.PrimaryKeyAttribute")!;
-        IndexAttribute = Compilation.GetTypeByMetadataName("Magus.IndexAttribute")!;
-        MagusConstructorAttribute = Compilation.GetTypeByMetadataName("Magus.MagusConstructorAttribute")!;
-        MemoryPackableAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackableAttribute")!;
-        MemoryPackIncludeAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute")!;
-        MemoryPackIgnoreAttribute = Compilation.GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute")!;
-        MemoryPackableInterface = Compilation.GetTypeByMetadataName("MemoryPack.IMemoryPackable`1")!.ConstructUnboundGenericType();
+        MagusTableAttribute = GetTypeByMetadataName(MagusGenerator.MagusTableAttributeFullName)!;
+        PrimaryKeyAttribute = GetTypeByMetadataName("Magus.PrimaryKeyAttribute")!;
+        IndexAttribute = GetTypeByMetadataName("Magus.IndexAttribute")!;
+        MagusConstructorAttribute = GetTypeByMetadataName("Magus.MagusConstructorAttribute")!;
+        MemoryPackableAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackableAttribute")!;
+        MemoryPackIncludeAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIncludeAttribute")!;
+        MemoryPackIgnoreAttribute = GetTypeByMetadataName("MemoryPack.MemoryPackIgnoreAttribute")!;
+        MemoryPackableInterface = GetTypeByMetadataName("MemoryPack.IMemoryPackable`1")!.ConstructUnboundGenericType();
+    }
+    
+    INamedTypeSymbol GetTypeByMetadataName(string metadataName)
+    {
+        var symbol = Compilation.GetTypeByMetadataName(metadataName);
+        if (symbol == null)
+        {
+            throw new InvalidOperationException($"Type {metadataName} is not found in compilation.");
+        }
+        return symbol;
     }
 }
