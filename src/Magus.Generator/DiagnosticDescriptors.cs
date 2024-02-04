@@ -100,7 +100,7 @@ public class DiagnosticDescriptors
         new DiagnosticDescriptor(
             id: "MAGUS999",
             title: "Unexpected error",
-            messageFormat: e.Message,
+            messageFormat: $"{e.Message}\n{e.StackTrace}",
             category: Category,
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
