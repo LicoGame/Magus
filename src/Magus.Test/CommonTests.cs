@@ -46,7 +46,7 @@ namespace Magus.Test
     }
 
     [TestFixture]
-    public class Tests
+    public class CommonTests
     {
         private readonly Faker<User> _userFaker = new Faker<User>()
             .StrictMode(true)
@@ -66,6 +66,19 @@ namespace Magus.Test
             var user = _userFaker.Generate();
             var builder = new DatabaseBuilder();
             builder.Append(users.Append(user).ToArray());
+            var binary = builder.Build();
+            var master = new MagusDatabase(binary, 1);
+            var actual = master.UserTable.FindById(user.Id);
+            Assert.That(user, Is.EqualTo(actual));
+        }
+
+        [Test]
+        public void Lazy()
+        {
+            var builder = new LazyDatabaseBuilder();
+            var user = _userFaker.Generate();
+            builder.Append(Enumerable.Empty<User>().Append(user));
+            builder.Append(Enumerable.Range(0, 10).Select(_ => _userFaker.Generate()));
             var binary = builder.Build();
             var master = new MagusDatabase(binary, 1);
             var actual = master.UserTable.FindById(user.Id);
