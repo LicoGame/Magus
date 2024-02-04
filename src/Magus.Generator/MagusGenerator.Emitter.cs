@@ -307,7 +307,7 @@ public partial class MagusGenerator
         }
         catch (Exception e)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnexpectedError(e), null));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnexpectedError(e), null, e.StackTrace));
         }
     }
 
