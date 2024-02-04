@@ -96,6 +96,16 @@ public class DiagnosticDescriptors
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+    public static DiagnosticDescriptor NullReferenceError<T>() =>
+        new DiagnosticDescriptor(
+            id: "MAGUS998",
+            title: "Null reference error",
+            messageFormat: $"Null reference error\n{typeof(T)}\n{new Exception()}",
+            category: Category,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
+    
     public static DiagnosticDescriptor UnexpectedError(Exception e) =>
         new DiagnosticDescriptor(
             id: "MAGUS999",
