@@ -10,26 +10,26 @@ public partial class MagusGenerator
 {
     private static void Generate(TypeDeclarationSyntax syntax, Compilation compilation, GeneratorContext context)
     {
+        var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+        var typeSymbol = semanticModel.GetDeclaredSymbol(syntax);
+        if (typeSymbol == null) return;
+        if (!IsPartial(syntax))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, syntax.GetLocation(),
+                syntax.Identifier));
+            return;
+        }
+
+        if (IsNested(syntax))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedNotAllow, syntax.GetLocation(),
+                syntax.Identifier));
+            return;
+        }
+
+        var referenceSymbols = new ReferenceSymbols(compilation, typeSymbol);
         try
         {
-            var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-            var typeSymbol = semanticModel.GetDeclaredSymbol(syntax);
-            if (typeSymbol == null) return;
-            if (!IsPartial(syntax))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, syntax.GetLocation(),
-                    syntax.Identifier));
-                return;
-            }
-
-            if (IsNested(syntax))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedNotAllow, syntax.GetLocation(),
-                    syntax.Identifier));
-                return;
-            }
-
-            var referenceSymbols = new ReferenceSymbols(compilation, typeSymbol);
 
             var typeMeta = new TypeMeta(typeSymbol, referenceSymbols);
 
@@ -80,11 +80,11 @@ public partial class MagusGenerator
     private static void Generate(in ImmutableArray<TypeDeclarationSyntax> syntaxes, Compilation compilation,
         GeneratorContext context)
     {
+        var referenceSymbols = new ReferenceSymbols(
+            compilation, 
+            syntaxes.Select(v => compilation.GetSemanticModel(v.SyntaxTree).GetDeclaredSymbol(v)));
         try
         {
-            var referenceSymbols = new ReferenceSymbols(
-                compilation, 
-                syntaxes.Select(v => compilation.GetSemanticModel(v.SyntaxTree).GetDeclaredSymbol(v)));
             var metas = syntaxes
                 .Select(syntax =>
                 {
