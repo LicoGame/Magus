@@ -4,9 +4,7 @@
   "version": "0.6.15",
   "unity": "2022.2",
   "displayName": "Lico.Magus",
-  "dependencies": {
-    "com.cysharp.memorypack": "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/Plugins/MemoryPack#1.10.0"
-  },
+  "dependencies": {},
   "author": {
     "name": "Lico.org"
   }
