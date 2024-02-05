@@ -24,19 +24,18 @@ public class ReferenceSymbols
     #endregion
 
     public ReferenceSymbols(Compilation compilation, in IEnumerable<INamedTypeSymbol?> targetSymbols)
-    : this(compilation)
+    : this(compilation, string.Join(",", targetSymbols.Select(v => v?.Name)))
     {
-        _locationHint = string.Join(",", targetSymbols.Select(v => v?.Name));
     }
 
     public ReferenceSymbols(Compilation compilation, INamedTypeSymbol targetSymbol)
-        : this(compilation)
+        : this(compilation, targetSymbol.Name)
     {
-        _locationHint =  targetSymbol.Name;
     }
     
-    private ReferenceSymbols(Compilation compilation)
+    private ReferenceSymbols(Compilation compilation, string locationHint)
     {
+        _locationHint = locationHint;
         Compilation = compilation;
         
         MagusTableAttribute = GetTypeByMetadataName(MagusGenerator.MagusTableAttributeFullName)!;
