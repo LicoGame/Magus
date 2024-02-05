@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Magus.Generator;
 
@@ -10,6 +12,8 @@ public class ReferenceSymbols
     public INamedTypeSymbol IndexAttribute { get; }
     public INamedTypeSymbol MagusConstructorAttribute { get; }
     public INamedTypeSymbol MemoryPackableInterface { get; }
+
+    private string _locationHint = string.Empty;
     
     #region MemoryPack
     
@@ -18,8 +22,20 @@ public class ReferenceSymbols
     public INamedTypeSymbol MemoryPackIgnoreAttribute { get; }
     
     #endregion
+
+    public ReferenceSymbols(Compilation compilation, in ImmutableArray<TypeDeclarationSyntax> syntaxes)
+    : this(compilation)
+    {
+        _locationHint = string.Join(",", syntaxes.Select(s => s.GetLocation().ToString()));
+    }
+
+    public ReferenceSymbols(Compilation compilation, TypeDeclarationSyntax syntax)
+        : this(compilation)
+    {
+        _locationHint = syntax.GetLocation().ToString();
+    }
     
-    public ReferenceSymbols(Compilation compilation)
+    private ReferenceSymbols(Compilation compilation)
     {
         Compilation = compilation;
         
@@ -38,7 +54,7 @@ public class ReferenceSymbols
         var symbol = Compilation.GetTypeByMetadataName(metadataName);
         if (symbol == null)
         {
-            throw new InvalidOperationException($"Type {metadataName} is not found in compilation.");
+            throw new InvalidOperationException($"Type {metadataName} is not found in compilation at:{_locationHint}");
         }
         return symbol;
     }

@@ -29,7 +29,7 @@ public partial class MagusGenerator
                 return;
             }
 
-            var referenceSymbols = new ReferenceSymbols(compilation);
+            var referenceSymbols = new ReferenceSymbols(compilation, syntax);
 
             var typeMeta = new TypeMeta(typeSymbol, referenceSymbols);
 
@@ -82,7 +82,7 @@ public partial class MagusGenerator
     {
         try
         {
-            var referenceSymbols = new ReferenceSymbols(compilation);
+            var referenceSymbols = new ReferenceSymbols(compilation, syntaxes);
             var metas = syntaxes
                 .Select(syntax =>
                 {
