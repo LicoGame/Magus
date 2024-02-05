@@ -23,16 +23,16 @@ public class ReferenceSymbols
     
     #endregion
 
-    public ReferenceSymbols(Compilation compilation, in ImmutableArray<TypeDeclarationSyntax> syntaxes)
+    public ReferenceSymbols(Compilation compilation, in IEnumerable<INamedTypeSymbol?> targetSymbols)
     : this(compilation)
     {
-        _locationHint = string.Join(",", syntaxes.Select(s => s.GetLocation().ToString()));
+        _locationHint = string.Join(",", targetSymbols.Select(v => v?.Name));
     }
 
-    public ReferenceSymbols(Compilation compilation, TypeDeclarationSyntax syntax)
+    public ReferenceSymbols(Compilation compilation, INamedTypeSymbol targetSymbol)
         : this(compilation)
     {
-        _locationHint = syntax.GetLocation().ToString();
+        _locationHint =  targetSymbol.Name;
     }
     
     private ReferenceSymbols(Compilation compilation)
