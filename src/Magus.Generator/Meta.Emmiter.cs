@@ -21,10 +21,10 @@ public partial class TypeMeta
                         public {{signature}} {{TableName}} : TableBase<{{TypeName}}>
                         """);
         using var _ = sb.Block();
-        PrimaryKey.EmitKeySelectorDefinition(sb, TypeName);
+        PrimaryKey.EmitKeySelectorDefinition(sb, TypeName, true);
         foreach (var index in Indexes)
         {
-            index.EmitKeySelectorDefinition(sb, TypeName);
+            index.EmitKeySelectorDefinition(sb, TypeName, false);
         }
 
         foreach (var combinedIndex in CombinedIndexes)
@@ -36,10 +36,10 @@ public partial class TypeMeta
         EmitConstructor(sb, context);
         sb.AppendLine();
 
-        PrimaryKey.Emit(sb, context, TypeName);
+        PrimaryKey.Emit(sb, context, TypeName, true);
         foreach (var index in Indexes)
         {
-            index.Emit(sb, context, TypeName);
+            index.Emit(sb, context, TypeName, false);
         }
 
         foreach (var combinedIndex in CombinedIndexes)
@@ -56,10 +56,10 @@ public partial class TypeMeta
         sb.Decrease();
         {
             using var _ = sb.Block();
-            PrimaryKey.EmitKeySelectorInitializer(sb);
+            PrimaryKey.EmitKeySelectorInitializer(sb, true);
             foreach (var index in Indexes)
             {
-                index.EmitKeySelectorInitializer(sb);
+                index.EmitKeySelectorInitializer(sb, false);
             }
 
             foreach (var combinedIndex in CombinedIndexes)
@@ -102,17 +102,12 @@ public partial class MemberMeta
         return $"System.Collections.Generic.Comparer<{symbol.ResolveType()}>.Default";
     }
 
-    public void EmitKeySelectorDefinition(IndentedStringBuilder sb, string typeName)
+    public void EmitKeySelectorDefinition(IndentedStringBuilder sb, string typeName, bool isPrimary)
     {
-        EmitKeySelectorDefinition(sb, typeName, IsPrimaryKey);
-    }
-
-    private void EmitKeySelectorDefinition(IndentedStringBuilder sb, string typeName, bool primary)
-    {
-        var name = primary ? "Primary" : Name;
+        var name = isPrimary ? "Primary" : Name;
         var funcType = $"Func<{typeName}, {MemberType.ResolveType()}>";
         var fName = SelectorFieldName(name);
-        if (!primary)
+        if (!isPrimary)
         {
             sb.AppendLine($"private readonly {typeName}[] {ClonedIndexFieldName(name)};");
         }
@@ -125,90 +120,90 @@ public partial class MemberMeta
         sb.AppendLine($"private readonly {funcType} {fName};");
     }
 
-    public void EmitKeySelectorInitializer(IndentedStringBuilder sb)
+    public void EmitKeySelectorInitializer(IndentedStringBuilder sb, bool isPrimary)
     {
-        var name = IsPrimaryKey ? "Primary" : Name;
+        var name = isPrimary ? "Primary" : Name;
         var fName = SelectorFieldName(name);
         sb.AppendLine($"{fName} = v => v.{Name};");
-        if (!IsPrimaryKey)
+        if (!isPrimary)
         {
             sb.AppendLine($"{ClonedIndexFieldName(name)} = CloneAndSortBy({fName}, {Comparer(MemberType)});");
         }
     }
 
-    public void Emit(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    public void Emit(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        EmitFindByKey(sb, context, typeName);
+        EmitFindByKey(sb, context, typeName, isPrimary);
         sb.AppendLine();
-        EmitTryFindByKey(sb, context, typeName);
+        EmitTryFindByKey(sb, context, typeName, isPrimary);
         sb.AppendLine();
-        EmitFindClosestByKey(sb, context, typeName);
+        EmitFindClosestByKey(sb, context, typeName, isPrimary);
         sb.AppendLine();
-        EmitFindRangeByKey(sb, context, typeName);
+        EmitFindRangeByKey(sb, context, typeName, isPrimary);
         sb.AppendLine();
-        EmitFindRangeByKeyAsSpan(sb, context, typeName);
+        EmitFindRangeByKeyAsSpan(sb, context, typeName, isPrimary);
         sb.AppendLine();
     }
 
-    private void EmitFindByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    private void EmitFindByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        var arrayName = IsPrimaryKey ? "Values" : ClonedIndexFieldName(Name);
+        var arrayName = isPrimary ? "Values" : ClonedIndexFieldName(Name);
         sb.AppendLine($"public {typeName} FindBy{Name.ToPascalCase()}({MemberType.ResolveType()} key)");
         using var _ = sb.Block();
         var intSpecialize = MemberType.SpecialType is SpecialType.System_Int32;
         var funcName = intSpecialize ? "FindUniqueCoreInt" : "FindUniqueCore";
-        var selectorName = SelectorFieldName(IsPrimaryKey ? "Primary" : Name);
+        var selectorName = SelectorFieldName(isPrimary ? "Primary" : Name);
         var cmp = intSpecialize ? string.Empty : $", {Comparer(MemberType)}";
-        var throwable = IsPrimaryKey ? ", true" : string.Empty;
+        var throwable = isPrimary ? ", true" : string.Empty;
         sb.AppendLine($"return {funcName}({arrayName}, key, {selectorName}{cmp}{throwable});");
     }
 
-    private void EmitTryFindByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    private void EmitTryFindByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        var arrayName = IsPrimaryKey ? "Values" : ClonedIndexFieldName(Name);
+        var arrayName = isPrimary ? "Values" : ClonedIndexFieldName(Name);
         sb.AppendLine(
             $"public bool TryFindBy{Name.ToPascalCase()}({MemberType.ResolveType()} key, out {typeName} result)");
         using var _ = sb.Block();
         var intSpecialize = MemberType.SpecialType is SpecialType.System_Int32;
         var funcName = intSpecialize ? "TryFindUniqueCoreInt" : "TryFindUniqueCore";
-        var selectorName = SelectorFieldName(IsPrimaryKey ? "Primary" : Name);
+        var selectorName = SelectorFieldName(isPrimary ? "Primary" : Name);
         var cmp = intSpecialize ? string.Empty : $", {Comparer(MemberType)}";
         sb.AppendLine(
             $"return {funcName}({arrayName}, key, {selectorName}{cmp}, out result);");
     }
 
-    private void EmitFindClosestByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    private void EmitFindClosestByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        var arrayName = IsPrimaryKey ? "Values" : ClonedIndexFieldName(Name);
+        var arrayName = isPrimary ? "Values" : ClonedIndexFieldName(Name);
         sb.AppendLine(
             $"public {typeName} FindClosestBy{Name.ToPascalCase()}({MemberType.ResolveType()} key, bool selectLower = true)");
         using var _ = sb.Block();
         var funcName = "FindUniqueClosestCore";
-        var selectorName = SelectorFieldName(IsPrimaryKey ? "Primary" : Name);
+        var selectorName = SelectorFieldName(isPrimary ? "Primary" : Name);
         sb.AppendLine(
             $"return {funcName}({arrayName}, key, {selectorName}, {Comparer(MemberType)}, selectLower);");
     }
 
-    private void EmitFindRangeByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    private void EmitFindRangeByKey(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        var arrayName = IsPrimaryKey ? "Values" : ClonedIndexFieldName(Name);
+        var arrayName = isPrimary ? "Values" : ClonedIndexFieldName(Name);
         sb.AppendLine(
             $"public RangeView<{typeName}> FindRangeBy{Name.ToPascalCase()}({MemberType.ResolveType()} min, {MemberType.ResolveType()} max, bool ascending = true)");
         using var _ = sb.Block();
         var funcName = "FindUniqueRangeCore";
-        var selectorName = SelectorFieldName(IsPrimaryKey ? "Primary" : Name);
+        var selectorName = SelectorFieldName(isPrimary ? "Primary" : Name);
         sb.AppendLine(
             $"return {funcName}({arrayName}, min, max, {selectorName}, {Comparer(MemberType)}, ascending);");
     }
 
-    private void EmitFindRangeByKeyAsSpan(IndentedStringBuilder sb, IGeneratorContext context, string typeName)
+    private void EmitFindRangeByKeyAsSpan(IndentedStringBuilder sb, IGeneratorContext context, string typeName, bool isPrimary)
     {
-        var arrayName = IsPrimaryKey ? "Values" : ClonedIndexFieldName(Name);
+        var arrayName = isPrimary ? "Values" : ClonedIndexFieldName(Name);
         sb.AppendLine(
             $"public ReadOnlySpan<{typeName}> FindRangeBy{Name.ToPascalCase()}AsSpan({MemberType.ResolveType()} min, {MemberType.ResolveType()} max, bool ascending = true)");
         using var _ = sb.Block();
         var funcName = "FindUniqueRangeCoreAsSpan";
-        var selectorName = SelectorFieldName(IsPrimaryKey ? "Primary" : Name);
+        var selectorName = SelectorFieldName(isPrimary ? "Primary" : Name);
         sb.AppendLine(
             $"return {funcName}({arrayName}, min, max, {selectorName}, {Comparer(MemberType)}, ascending);");
     }
@@ -273,13 +268,13 @@ public static class EmitHelper
 
 public static class MemberMetaExtensions
 {
-    private static string GetTypeName(this MemberMeta[] metas) =>
-        $"({string.Join(", ", metas.Select(v => $"{v.MemberType.ResolveType()} {v.Name.ToPascalCase()}"))})";
+    private static string GetTypeName(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas) =>
+        $"({string.Join(", ", metas.Select(v => $"{v.Meta.MemberType.ResolveType()} {v.Meta.Name.ToPascalCase()}"))})";
 
-    private static string GetMemberBaseName(this MemberMeta[] metas) =>
-        string.Join("_", metas.Select(v => v.Name));
+    private static string GetMemberBaseName(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas) =>
+        string.Join("_", metas.Select(v => v.Meta.Name));
 
-    public static void EmitCombinedKeySelectorDefinition(this MemberMeta[] metas, IndentedStringBuilder sb,
+    public static void EmitCombinedKeySelectorDefinition(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb,
         string typeName)
     {
         var name = metas.GetMemberBaseName();
@@ -290,17 +285,17 @@ public static class MemberMetaExtensions
         sb.AppendLine($"private readonly {funcType} {fName};");
     }
 
-    public static void EmitCombinedKeySelectorInitializer(this MemberMeta[] metas, IndentedStringBuilder sb)
+    public static void EmitCombinedKeySelectorInitializer(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb)
     {
         var name = metas.GetMemberBaseName();
         var fName = MemberMeta.SelectorFieldName(name);
         var tName = metas.GetTypeName();
-        sb.AppendLine($"{fName} = v => ({string.Join(", ", metas.Select(v => $"v.{v.Name}"))});");
+        sb.AppendLine($"{fName} = v => ({string.Join(", ", metas.Select(v => $"v.{v.Meta.Name}"))});");
         sb.AppendLine(
             $"{MemberMeta.ClonedIndexFieldName(name)} = CloneAndSortBy({fName}, System.Collections.Generic.Comparer<{tName}>.Default);");
     }
 
-    public static void Emit(this MemberMeta[] metas, IndentedStringBuilder sb, string typeName)
+    public static void Emit(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb, string typeName)
     {
         metas.EmitFindByCombinedKey(sb, typeName);
         sb.AppendLine();
@@ -314,7 +309,7 @@ public static class MemberMetaExtensions
         sb.AppendLine();
     }
 
-    private static void EmitFindByCombinedKey(this MemberMeta[] metas, IndentedStringBuilder sb, string typeName)
+    private static void EmitFindByCombinedKey(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb, string typeName)
     {
         var name = metas.GetMemberBaseName();
         var arrayName = $"_{name.ToCamelCase()}Index";
@@ -327,7 +322,7 @@ public static class MemberMetaExtensions
             $"return {funcName}({arrayName}, key, {fName}, System.Collections.Generic.Comparer<{tName}>.Default);");
     }
 
-    private static void EmitTryFindByCombinedKey(this MemberMeta[] metas, IndentedStringBuilder sb, string typeName)
+    private static void EmitTryFindByCombinedKey(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb, string typeName)
     {
         var name = metas.GetMemberBaseName();
         var arrayName = $"_{name.ToCamelCase()}Index";
@@ -340,7 +335,7 @@ public static class MemberMetaExtensions
             $"return {funcName}({arrayName}, key, {fName}, System.Collections.Generic.Comparer<{tName}>.Default, out result);");
     }
 
-    private static void EmitFindClosestByCombinedKey(this MemberMeta[] metas, IndentedStringBuilder sb, string typeName)
+    private static void EmitFindClosestByCombinedKey(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb, string typeName)
     {
         var name = metas.GetMemberBaseName();
         var arrayName = $"_{name.ToCamelCase()}Index";
@@ -353,7 +348,7 @@ public static class MemberMetaExtensions
             $"return {funcName}({arrayName}, key, {fName}, System.Collections.Generic.Comparer<{tName}>.Default, selectLower);");
     }
 
-    private static void EmitFindRangeByCombinedKey(this MemberMeta[] metas, IndentedStringBuilder sb, string typeName)
+    private static void EmitFindRangeByCombinedKey(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb, string typeName)
     {
         var name = metas.GetMemberBaseName();
         var arrayName = $"_{name.ToCamelCase()}Index";
@@ -367,7 +362,7 @@ public static class MemberMetaExtensions
             $"return {funcName}({arrayName}, min, max, {fName}, System.Collections.Generic.Comparer<{tName}>.Default, ascending);");
     }
 
-    private static void EmitFindRangeByCombinedKeyAsSpan(this MemberMeta[] metas, IndentedStringBuilder sb,
+    private static void EmitFindRangeByCombinedKeyAsSpan(this (MemberMeta Meta, MemberMeta.IndexInfo Info)[] metas, IndentedStringBuilder sb,
         string typeName)
     {
         var name = metas.GetMemberBaseName();

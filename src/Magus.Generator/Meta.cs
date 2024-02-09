@@ -13,7 +13,7 @@ public partial class TypeMeta
     public MemberMeta[] Members { get; }
     public MemberMeta PrimaryKey { get; }
     public MemberMeta[] Indexes { get; }
-    public MemberMeta[][] CombinedIndexes { get; }
+    public (MemberMeta Meta, MemberMeta.IndexInfo Info)[][] CombinedIndexes { get; }
     public bool IsValueType { get; }
     public bool IsUnmanagedType { get; }
     public bool IsInterfaceOrAbstract { get; }
@@ -55,14 +55,16 @@ public partial class TypeMeta
         PrimaryKey = Members.First(v => v.IsPrimaryKey);
         var indexes = Members
             .Where(v => v.IsIndexKey)
-            .GroupBy(v => v.IndexOrder).ToArray();
+            .SelectMany(v => v.IndexInfos.Select(info => (memberMeta: v, info)))
+            .GroupBy(v => v.info.Order)
+            .ToArray();
         CombinedIndexes = indexes
             .Where(v => v.Count() > 1)
-            .Select(v => v.OrderBy(x => x.CombinedIndexOrder).ToArray())
+            .Select(v => v.Select(x => (x.memberMeta, x.info)).ToArray())
             .ToArray();
         Indexes = indexes
             .Where(v => v.Count() == 1)
-            .Select(v => v.Single())
+            .Select(v => v.Single().memberMeta)
             .ToArray();
     }
 
@@ -143,7 +145,8 @@ public partial class TypeMeta
             hasError = true;
         }
 
-        if (CombinedIndexes.Any(v => v.DistinctBy(x => x.CombinedIndexOrder).Count() != v.Length))
+        if (CombinedIndexes.Any(v => v
+                .DistinctBy(x => x.Info.CombinedOrder).Count() != v.Length))
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CombinedIndexOrdersNotUnique,
                 syntax.GetLocation(), Symbol.Name));
@@ -169,8 +172,20 @@ public partial class MemberMeta
 
     public bool IsPrimaryKey { get; }
     public bool IsIndexKey { get; }
-    public int IndexOrder { get; }
-    public int CombinedIndexOrder { get; }
+
+    public struct IndexInfo
+    {
+        public IndexInfo(int order, int combinedOrder)
+        {
+            Order = order;
+            CombinedOrder = combinedOrder;
+        }
+
+        public int Order { get; }
+        public int CombinedOrder { get; }
+    }
+
+    public IndexInfo[] IndexInfos { get; }
 
     public string? ContainingNamespace { get; }
 
@@ -180,6 +195,7 @@ public partial class MemberMeta
         Name = null!;
         MemberType = null!;
         ContainingNamespace = null;
+        IndexInfos = Array.Empty<IndexInfo>();
     }
 
     public MemberMeta(ISymbol symbol, IMethodSymbol? constructor, ReferenceSymbols references)
@@ -231,12 +247,14 @@ public partial class MemberMeta
         var primaryKeyAttribute = symbol.GetAttribute(references.PrimaryKeyAttribute);
         IsPrimaryKey = primaryKeyAttribute != null;
 
-        var indexAttribute = symbol.GetAttribute(references.IndexAttribute);
-        if (indexAttribute != null)
-        {
-            IsIndexKey = true;
-            IndexOrder = indexAttribute.ConstructorArguments[0].Value! as int? ?? 0;
-            CombinedIndexOrder = indexAttribute.ConstructorArguments[1].Value! as int? ?? 0;
-        }
+        var indexAttributes = symbol.GetAttributes()
+            .Where(v => SymbolEqualityComparer.Default.Equals(v.AttributeClass, references.IndexAttribute))
+            .ToArray();
+        IsIndexKey = indexAttributes.Length > 0;
+        IndexInfos = Enumerable.Empty<IndexInfo>()
+            .Concat(indexAttributes.Select(v => new IndexInfo(
+                v.ConstructorArguments[0].Value! as int? ?? 0,
+                v.ConstructorArguments[1].Value! as int? ?? 0))
+            ).ToArray();
     }
 }
