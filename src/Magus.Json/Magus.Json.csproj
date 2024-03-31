@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Magus\Magus.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JsonSchema.Net" Version="6.0.7"/>
+        <PackageReference Include="JsonSchema.Net.Generation" Version="4.3.0"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <DestinationRoot>$(MSBuildProjectDirectory)\..\Magus.Unity\Assets\Scripts\Magus.Json</DestinationRoot>
+        <DestinationPluginRoot>$(DestinationRoot)\Plugins</DestinationPluginRoot>
+    </PropertyGroup>
+    <ItemGroup>
+        <TargetFiles Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*"/>
+        <DllFiles Include="$(MSBuildProjectDirectory)\..\..\temp\Magus.Json\*.dll" Exclude="**\Magus*.dll;**\MemoryPack.Core.dll"/>
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'netstandard2.1'">
+        <Copy SourceFiles="@(TargetFiles)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true"/>
+        <Exec Command="dotnet publish $(MSBuildProjectFile) --no-build -c $(ConfigurationName) -f $(TargetFramework) -o $(MSBuildProjectDirectory)\..\..\temp\Magus.Json"/>
+        <Copy SourceFiles="@(DllFiles)" DestinationFiles="$(DestinationPluginRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true"/>
+    </Target>
+</Project>

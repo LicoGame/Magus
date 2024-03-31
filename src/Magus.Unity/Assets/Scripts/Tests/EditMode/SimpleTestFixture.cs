@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using Magus;
 using Magus.Generated;
 using Magus.Generated.Builder;
+using Magus.Json;
 using MemoryPack;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -60,6 +63,7 @@ namespace Tests.EditMode
         public string Name;
     }
     
+    
     [TestFixture]
     public class SimpleTestFixture
     {
@@ -84,6 +88,19 @@ namespace Tests.EditMode
         {
             var pet = new Pet();
             var bytes = MemoryPackSerializer.Serialize(pet);
+        }
+        
+        [Test]
+        public void Test03()
+        {
+            var results = JsonSchemaGenerator.GenerateAll<MagusDatabase>();
+            
+            foreach (var v in results)
+            {
+                var text = Encoding.UTF8.GetString(v.Value.ToArray());
+                Debug.Log($"Type: {v.Key.Name}\n{text}");
+            }
+            Assert.Pass();
         }
     }
 }

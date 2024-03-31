@@ -9,6 +9,8 @@ namespace Magus
     using Header = System.Collections.Generic.Dictionary<string, (int offset, int count)>;
     public abstract class MagusDatabaseBase
     {
+        public abstract Type[] TableTypes { get; }
+        
         public MagusDatabaseBase() {}
         public MagusDatabaseBase(byte[] binaryData, int workerSize = 1)
         {
