@@ -246,7 +246,6 @@ public static class EmitHelper
                     .Append(symbol)
                     .Concat(symbol.AllInterfaces)
                     .ToArray();
-                var lookuped = false;
                 foreach (var target in lookupTargets)
                 {
                     var method = target.GetMembers("RegisterFormatter").FirstOrDefault();
@@ -259,7 +258,6 @@ public static class EmitHelper
                     if (target.IsGenericType && !target.TypeArguments.Contains(symbol, SymbolEqualityComparer.Default)) continue;
                     // Call implemented RegisterFormatter method directly
                     sb.AppendLine($"{target}.RegisterFormatter();");
-                    lookuped = true;
                 }
             }
         }

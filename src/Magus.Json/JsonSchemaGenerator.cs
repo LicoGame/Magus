@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Json.Schema;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Generators;
-using Json.Schema.Generation.Intents;
 
 namespace Magus.Json
 {
     public class JsonSchemaGenerator
     {
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
         public static void GenerateAll<T>(
             Func<Type, MemoryStream> streamCollector,
             IReadOnlyCollection<ISchemaGenerator>? generators = null,
@@ -21,23 +24,17 @@ namespace Magus.Json
         {
             var instance = new T();
             var tableTypes = instance.TableTypes;
-            var configuration = GetConfiguration();
-            var writerOptions = new JsonWriterOptions
-            {
-                Indented = true
-            };
-            var serializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
             foreach (var t in tableTypes)
             {
                 var stream = streamCollector(t);
                 var arrayT = t.MakeArrayType();
-                GenerateInternal(arrayT, stream, configuration, writerOptions, serializerOptions, generators, refiners);
+                GenerateInternal(arrayT, stream, generators: generators, refiners: refiners);
             }
         }
 
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
         public static Dictionary<Type, MemoryStream> GenerateAll<T>(
             IReadOnlyCollection<ISchemaGenerator>? generators = null,
             IReadOnlyCollection<ISchemaRefiner>? refiners = null)
@@ -54,8 +51,11 @@ namespace Magus.Json
             return streamCollector;
         }
 
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
         public static void GenerateObject<T>(Stream stream,
-        IReadOnlyCollection<ISchemaGenerator>? generators = null,
+            IReadOnlyCollection<ISchemaGenerator>? generators = null,
             IReadOnlyCollection<ISchemaRefiner>? refiners = null)
         {
             var t = typeof(T);
@@ -65,18 +65,12 @@ namespace Magus.Json
                 throw new InvalidOperationException("Table type must be marked with [MagusTableAttribute]");
             }
 
-            var configuration = GetConfiguration();
-            var writerOptions = new JsonWriterOptions
-            {
-                Indented = true
-            };
-            var serializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-            GenerateInternal(t, stream, configuration, writerOptions, serializerOptions, generators, refiners);
+            GenerateInternal(t, stream, generators: generators, refiners: refiners);
         }
 
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
         public static void GenerateArray<T>(Stream stream,
             IReadOnlyCollection<ISchemaGenerator>? generators = null,
             IReadOnlyCollection<ISchemaRefiner>? refiners = null)
@@ -87,64 +81,69 @@ namespace Magus.Json
             {
                 throw new InvalidOperationException("Table type must be marked with [MagusTableAttribute]");
             }
-            var arrayT = typeof(T[]);
-            var configuration = GetConfiguration();
-            var writerOptions = new JsonWriterOptions
-            {
-                Indented = true
-            };
-            var serializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-            GenerateInternal(arrayT, stream, configuration, writerOptions, serializerOptions, generators, refiners);
-        }
 
+            var arrayT = typeof(T[]);
+            GenerateInternal(arrayT, stream, generators: generators, refiners: refiners);
+        }
+        
         private static SchemaGeneratorConfiguration GetConfiguration()
         {
             var configuration = new SchemaGeneratorConfiguration();
-            configuration.Refiners.Add(new PrimaryKeyRefiner());
+            configuration.Refiners.Add(new MagusRefiner());
+            configuration.PropertyNameResolver = PropertyNameResolvers.CamelCase;
+            configuration.Optimize = false;
             return configuration;
         }
 
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
         private static void GenerateInternal(
             Type type,
             Stream stream,
-            SchemaGeneratorConfiguration configuration,
-            JsonWriterOptions writerOptions,
-            JsonSerializerOptions serializerOptions,
+            SchemaGeneratorConfiguration? configuration = null,
+            JsonWriterOptions? writerOptions = null,
+            JsonSerializerOptions? serializerOptions = null,
             IReadOnlyCollection<ISchemaGenerator>? generators = null,
             IReadOnlyCollection<ISchemaRefiner>? refiners = null)
         {
+            configuration ??= GetConfiguration();
             if (generators != null)
             {
                 configuration.Generators.AddRange(generators);
             }
+
             if (refiners != null)
             {
                 configuration.Refiners.AddRange(refiners);
             }
+
+            writerOptions ??= new JsonWriterOptions
+            {
+                Indented = true
+            };
+            serializerOptions ??= new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            };
+
+            // NOTE: Mark as using type signature for IL2CPP on Unity
+            // But these don't work for AOT scenarios
+            AttributeHandler.RemoveHandler<PrimaryKeyAttributeHandler>();
+            AttributeHandler.AddHandler<PrimaryKeyAttributeHandler>();
+            AttributeHandler.RemoveHandler<RelationAttributeHandler>();
+            AttributeHandler.AddHandler<RelationAttributeHandler>();
+
             var builder = new JsonSchemaBuilder();
             var schema = builder
+                .Schema(MetaSchemas.Draft7Id)
                 .FromType(type, configuration)
                 .Build();
             var converter = new SchemaJsonConverter();
-            var writer = new Utf8JsonWriter(stream, writerOptions);
+            using var writer = new Utf8JsonWriter(stream, writerOptions.Value);
             converter.Write(writer, schema, serializerOptions);
             writer.Flush();
-        }
-    }
-
-    internal class PrimaryKeyRefiner : ISchemaRefiner
-    {
-        public bool ShouldRun(SchemaGenerationContextBase context)
-        {
-            return context.GetAttributes().FirstOrDefault(attr => attr is PrimaryKeyAttribute) != null;
-        }
-
-        public void Run(SchemaGenerationContextBase context)
-        {
-            context.Intents.Add(new UniqueItemsIntent(true));
         }
     }
 }

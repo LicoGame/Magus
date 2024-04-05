@@ -129,7 +129,7 @@ public class Complex
             new(2, "name2")
         };
 
-        // Schema
+        // Expected Data Json
         var expectedJson =
             """
             [
@@ -144,11 +144,28 @@ public class Complex
             ]
             """;
 
+        // Expected Schema
+        var expectedSchema = new JsonSchemaBuilder()
+            .Schema(MetaSchemas.Draft7Id)
+            .Type(SchemaValueType.Array)
+            .Items(new JsonSchemaBuilder()
+                .Type(SchemaValueType.Object)
+                .Properties(
+                    ("id", new JsonSchemaBuilder().Type(SchemaValueType.String).UniqueItems(true)),
+                    ("name", new JsonSchemaBuilder().Type(SchemaValueType.String))
+                )
+            )
+            .PrimaryKey("id")
+            .Build();
+
+
         var memoryStream = new MemoryStream();
         JsonSchemaGenerator.GenerateArray<ComplexClass01>(memoryStream,
             generators: new[] { new StructIdJsonGenerator() });
         var schemaText = Encoding.UTF8.GetString(memoryStream.ToArray());
         var schema = JsonSchema.FromText(schemaText);
+
+        Assert.That(schemaText, Is.EqualTo(expectedSchema.ToJsonString()));
 
         Console.WriteLine(schemaText);
 
@@ -168,7 +185,5 @@ public class Complex
         // Deserialization
         var actualData = JsonSerializer.Deserialize<ComplexClass01[]>(jsonText, options)!;
         Assert.That(actualData, Is.EquivalentTo(expectedData));
-
-        Assert.Pass();
     }
 }

@@ -8,16 +8,17 @@ using MemoryPack;
 namespace Magus.Json.Test;
 
 [MemoryPackable, MagusTable(nameof(SimpleClass01))]
-public partial class SimpleClass01(int id, string name) : IEquatable<SimpleClass01>
+public partial class SimpleClass01(int id, string name, int score) : IEquatable<SimpleClass01>
 {
     [PrimaryKey] public int Id { get; } = id;
     public string Name { get; } = name;
+    public int Score { get; } = score;
 
     public bool Equals(SimpleClass01? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Id == other.Id && Name == other.Name;
+        return Id == other.Id && Name == other.Name && Score == other.Score;
     }
 
     public override bool Equals(object? obj)
@@ -30,7 +31,7 @@ public partial class SimpleClass01(int id, string name) : IEquatable<SimpleClass
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id, Name);
+        return HashCode.Combine(Id, Name, Score);
     }
 }
 
@@ -47,35 +48,54 @@ public class Simple
         // Data
         var expectedData = new SimpleClass01[]
         {
-            new(1, "name1"),
-            new(2, "name2")
+            new(1, "name1", 20),
+            new(2, "name2", 100)
         };
 
-        // Schema
-        var expectedJson = 
+        // Expected Data Json
+        var expectedJson =
             """
             [
                 {
-                    "Id": 1,
-                    "Name": "name1"
+                    "id": 1,
+                    "name": "name1",
+                    "score": 20
                 },
                 {
-                    "Id": 2,
-                    "Name": "name2"
+                    "id": 2,
+                    "name": "name2",
+                    "score": 100
                 }
             ]
             """;
-        
+
+        // Expected Schema
+        var expectedSchema = new JsonSchemaBuilder()
+            .Schema(MetaSchemas.Draft7Id)
+            .Type(SchemaValueType.Array)
+            .Items(new JsonSchemaBuilder()
+                .Type(SchemaValueType.Object)
+                .Properties(
+                    ("id", new JsonSchemaBuilder().Type(SchemaValueType.Integer).UniqueItems(true).ReadOnly(true)),
+                    ("name", new JsonSchemaBuilder().Type(SchemaValueType.String).ReadOnly(true)),
+                    ("score", new JsonSchemaBuilder().Type(SchemaValueType.Integer).ReadOnly(true))
+                )
+            )
+            .PrimaryKey("id")
+            .Build();
+
         var memoryStream = new MemoryStream();
         JsonSchemaGenerator.GenerateArray<SimpleClass01>(memoryStream);
         var schemaText = Encoding.UTF8.GetString(memoryStream.ToArray());
         var schema = JsonSchema.FromText(schemaText);
-        
+
+        Assert.That(schemaText, Is.EqualTo(expectedSchema.ToJsonString()));
+
         Console.WriteLine(schemaText);
-        
+
         // Serialization
         ValidatingJsonConverter.MapType<SimpleClass01[]>(schema);
-        var options = new JsonSerializerOptions
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             Converters = { new ValidatingJsonConverter() }
         };
@@ -85,11 +105,9 @@ public class Simple
         var node = JsonNode.Parse(expectedJson);
         var result = schema.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
         Assert.That(result.IsValid, Is.True);
-        
+
         // Deserialization
         var actualData = JsonSerializer.Deserialize<SimpleClass01[]>(jsonText, options)!;
         Assert.That(actualData, Is.EquivalentTo(expectedData));
-
-        Assert.Pass();
     }
 }
