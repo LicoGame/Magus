@@ -1,0 +1,27 @@
+{
+    "name": "Magus.Json.Unity",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1474327aef93ccd46a60b93fad238634"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Humanizer.dll",
+        "Json.More.dll",
+        "JsonPointer.Net.dll",
+        "JsonSchema.Net.dll",
+        "JsonSchema.Net.Generation.dll",
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "System.Collections.Immutable.dll",
+        "System.Runtime.CompilerServices.Unsafe.dll",
+        "System.Text.Encodings.Web.dll",
+        "System.Text.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

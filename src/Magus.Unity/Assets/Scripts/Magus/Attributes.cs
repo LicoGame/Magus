@@ -30,6 +30,19 @@ namespace Magus
             CombinedOrder = combinedOrder;
         }
     }
+    
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
+    public class RelationAttribute : Attribute
+    {
+        public string TableName { get; }
+        public string FieldName { get; }
+
+        public RelationAttribute(string tableName, string fieldName)
+        {
+            TableName = tableName;
+            FieldName = fieldName;
+        }
+    }
 
     [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
     public class MagusConstructorAttribute : Attribute

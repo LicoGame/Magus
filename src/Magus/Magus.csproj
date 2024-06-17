@@ -25,6 +25,6 @@
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'netstandard2.1'">
         <Copy SourceFiles="@(TargetFiles)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true"/>
-        <Exec Command="dotnet run -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\PostBuildUtility\PostBuildUtility.csproj -- $(DestinationRoot)"/>
+        <Exec Command="dotnet run -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\PostBuildUtility\PostBuildUtility.csproj -- copy-to-unity $(DestinationRoot)"/>
     </Target>
 </Project>

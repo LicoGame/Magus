@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <LangVersion>9</LangVersion>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+        <ExcludeUnityDlls>**\System.Buffers.dll;**\System.Memory.dll;**\System.Numerics.Vectors.dll;**\System.Threading.Tasks.Extensions.dll</ExcludeUnityDlls>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Magus\Magus.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JsonSchema.Net" Version="6.0.7"/>
+        <PackageReference Include="JsonSchema.Net.Generation" Version="4.3.0"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <DestinationRoot>$(MSBuildProjectDirectory)\..\Magus.Unity\Assets\Scripts\Magus.Json</DestinationRoot>
+        <DestinationPluginRoot>$(DestinationRoot)\Plugins</DestinationPluginRoot>
+    </PropertyGroup>
+    <ItemGroup>
+        <TargetFiles Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*" Visible="false"/>
+        <Dlls Include="$(MSBuildProjectDirectory)\..\..\temp\Magus.Json\*.dll" Exclude="**\Magus*.dll;**\MemoryPack.Core.dll;$(ExcludeUnityDlls)" Visible="false"/>
+        <SourceGeneratorDlls Include="$(NuGetPackageRoot)\system.text.json\8.0.0\analyzers\dotnet\roslyn3.11\cs\*.dll" Visible="false"/>
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'netstandard2.1' And $(Configuration) == 'Release'">
+        <Copy SourceFiles="@(TargetFiles)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true"/>
+        <Exec Command="dotnet publish $(MSBuildProjectFile) --no-build -c $(ConfigurationName) -f $(TargetFramework) -o $(MSBuildProjectDirectory)\..\..\temp\Magus.Json"/>
+        <Copy SourceFiles="@(Dlls)" DestinationFiles="$(DestinationPluginRoot)\%(RecursiveDir)%(Filename)%(Extension)"/>
+        <!-- Copy Source Generator-->
+        <Copy SourceFiles="@(SourceGeneratorDlls)" DestinationFiles="$(DestinationPluginRoot)\%(RecursiveDir)%(Filename)%(Extension)"/>
+    </Target>
+</Project>
