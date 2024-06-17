@@ -1,0 +1,11 @@
+{
+  "name": "org.lico.magus.json",
+  "description": "A package provides master data schema generation",
+  "version": "0.1.0",
+  "unity": "2022.2",
+  "displayName": "Lico.Magus.Json",
+  "dependencies": {},
+  "author": {
+    "name": "Lico.org"
+  }
+}

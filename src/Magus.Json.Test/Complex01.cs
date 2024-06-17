@@ -45,17 +45,26 @@ public struct StructId : IEquatable<StructId>, IComparable<StructId>, IStructId
     }
 }
 
+public enum Something
+{
+    TypeA,
+    TypeB,
+    TypeC
+}
+
 [MemoryPackable, MagusTable(nameof(ComplexClass01))]
-public partial class ComplexClass01(StructId id, string name) : IEquatable<ComplexClass01>
+public partial class ComplexClass01(StructId id, string name, Something something) : IEquatable<ComplexClass01>
 {
     [PrimaryKey] public StructId Id { get; set; } = id;
     public string Name { get; set; } = name;
+    
+    public Something Something { get; set; } = Something.TypeA;
 
     public bool Equals(ComplexClass01? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Id.Equals(other.Id) && Name == other.Name;
+        return Id.Equals(other.Id) && Name == other.Name && Something == other.Something;
     }
 
     public override bool Equals(object? obj)
@@ -68,7 +77,7 @@ public partial class ComplexClass01(StructId id, string name) : IEquatable<Compl
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id, Name);
+        return HashCode.Combine(Id, Name, Something);
     }
 }
 
@@ -125,8 +134,8 @@ public class Complex
         // Data
         var expectedData = new ComplexClass01[]
         {
-            new(1, "name1"),
-            new(2, "name2")
+            new(1, "name1", Something.TypeB),
+            new(2, "name2", Something.TypeC)
         };
 
         // Expected Data Json
@@ -135,11 +144,13 @@ public class Complex
             [
                 {
                     "Id": "1",
-                    "Name": "name1"
+                    "Name": "name1",
+                    "Something": "TypeB"
                 },
                 {
                     "Id": "2",
-                    "Name": "name2"
+                    "Name": "name2",
+                    "Something": "TypeC"
                 }
             ]
             """;
@@ -152,7 +163,8 @@ public class Complex
                 .Type(SchemaValueType.Object)
                 .Properties(
                     ("id", new JsonSchemaBuilder().Type(SchemaValueType.String).UniqueItems(true)),
-                    ("name", new JsonSchemaBuilder().Type(SchemaValueType.String))
+                    ("name", new JsonSchemaBuilder().Type(SchemaValueType.String)),
+                    ("something", new JsonSchemaBuilder().Enum(Enum.GetValues<Something>().Select(x => x.ToString())))
                 )
             )
             .PrimaryKey("id")
