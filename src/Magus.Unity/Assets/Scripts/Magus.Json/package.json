@@ -4,9 +4,8 @@
   "version": "0.1.0",
   "unity": "2022.2",
   "displayName": "Lico.Magus.Json",
-  "dependencies": {
-    "org.lico.magus": "1.0.1"
-  },
+  "dependencies": {},
+  "license": "MIT",
   "author": {
     "name": "Lico.org"
   }

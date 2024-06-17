@@ -5,6 +5,7 @@
   "unity": "2022.2",
   "displayName": "Lico.Magus",
   "dependencies": {},
+  "license": "MIT",
   "author": {
     "name": "Lico.org"
   }
