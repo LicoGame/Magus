@@ -1,8 +1,10 @@
-name: "Bump Version"
+name: "Bump Version (Magus.Json)"
 on:
   push:
     branches:
       - main
+    paths:
+      - "src/Magus.Unity/Assets/Scripts/Magus.Json/**"
 jobs:
   bump-version:
     permissions:
@@ -18,9 +20,9 @@ jobs:
           tag-prefix: "v"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PACKAGEJSON_DIR: "src/Magus.Unity/Assets/Scripts/Magus"
+          PACKAGEJSON_DIR: "src/Magus.Unity/Assets/Scripts/Magus.Json"
       - name: "cat package.json"
-        run: cat ./src/Magus.Unity/Assets/Scripts/Magus/package.json
+        run: cat ./src/Magus.Unity/Assets/Scripts/Magus.Json/package.json
       - name: "Output Step"
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
