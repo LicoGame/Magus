@@ -9,4 +9,7 @@ Magus is based on [MasterMemory](https://github.com/Cysharp/MasterMemory), modif
 ## Installation
 ### Unity
 Install via UPM.
-* https://github.com/LicoGame/Magus.git?path=src/Magus.Unity/Assets/Scripts/Magus
+* Magus
+  * https://github.com/LicoGame/Magus.git?path=src/Magus.Unity/Assets/Scripts/Magus
+* Magus.Json
+  * https://github.com/LicoGame/Magus.git?path=src/Magus.Unity/Assets/Scripts/Magus.Json
