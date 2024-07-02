@@ -1,5 +1,6 @@
 ﻿using System;
 using Json.Schema;
+using Magus.Json.Keywords;
 
 namespace Magus.Json
 {
@@ -22,14 +23,14 @@ namespace Magus.Json
                     (Vocabularies.Metadata202012Id, true),
                     (Vocabularies.FormatAnnotation202012Id, true),
                     (Vocabularies.Content202012Id, true),
-                    (Vocabularies.Unevaluated202012Id, true)
+                    (Vocabularies.Unevaluated202012Id, true),
+                    (MagusVocabularies.RelationExtId, true)
                 )
                 .DynamicAnchor("meta")
                 .Title("Relation extensions 2020-12 meta-schema")
                 .AllOf(
                     new JsonSchemaBuilder().Ref(MetaSchemas.Draft202012Id),
-                    new JsonSchemaBuilder().Ref(RelationExt202012Id))
-                .Build();
+                    new JsonSchemaBuilder().Ref(RelationExt202012Id));
 
         public static readonly JsonSchema RelationExt =
             new JsonSchemaBuilder()
@@ -38,22 +39,22 @@ namespace Magus.Json
                 .Title("Relation extensions meta-schema")
                 .Properties(
                     (PrimaryKeyKeyword.Name, new JsonSchemaBuilder()
-                        .Type(SchemaValueType.String)
-                        .Properties((PrimaryKeyKeyword.Field, new JsonSchemaBuilder()
+                        .Type(SchemaValueType.Object)
+                        .Properties((PrimaryKeyKeyword.FieldName, new JsonSchemaBuilder()
                             .Type(SchemaValueType.String)))),
                     (RelationsKeyword.Name, new JsonSchemaBuilder()
                         .Type(SchemaValueType.Array)
                         .Items(new JsonSchemaBuilder()
                             .Type(SchemaValueType.Object)
                             .Properties(
-                                (RelationsKeyword.From, new JsonSchemaBuilder()
+                                (RelationsKeyword.FromName, new JsonSchemaBuilder()
                                     .Type(SchemaValueType.String)),
-                                (RelationsKeyword.To, new JsonSchemaBuilder()
+                                (RelationsKeyword.ToName, new JsonSchemaBuilder()
                                     .Type(SchemaValueType.Object)
                                     .Properties(
-                                        (RelationsKeyword.Table, new JsonSchemaBuilder()
+                                        (RelationsKeyword.TableName, new JsonSchemaBuilder()
                                             .Type(SchemaValueType.String)),
-                                        (RelationsKeyword.Field, new JsonSchemaBuilder()
+                                        (RelationsKeyword.FieldName, new JsonSchemaBuilder()
                                             .Type(SchemaValueType.String))
                                     )
                                 )

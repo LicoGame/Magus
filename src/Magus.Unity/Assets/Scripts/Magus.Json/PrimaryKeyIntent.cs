@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using Json.Schema;
 using Json.Schema.Generation;
+using Magus.Json.Keywords;
 
 namespace Magus.Json
 {
@@ -15,7 +16,7 @@ namespace Magus.Json
 
         public void Apply(JsonSchemaBuilder builder)
         {
-            JsonObject obj = new JsonObject { { PrimaryKeyKeyword.Field, _fieldName } };
+            JsonObject obj = new JsonObject { { PrimaryKeyKeyword.FieldName, _fieldName } };
             builder.Unrecognized(PrimaryKeyKeyword.Name, obj);
         }
     }
