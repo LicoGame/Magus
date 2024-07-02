@@ -1,7 +1,7 @@
 {
   "name": "org.lico.magus.json",
   "description": "A package provides master data schema generation",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "unity": "2022.2",
   "displayName": "Lico.Magus.Json",
   "dependencies": {},
