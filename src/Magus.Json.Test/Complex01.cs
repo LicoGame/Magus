@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Humanizer;
 using Json.Schema;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Generators;
@@ -57,7 +58,7 @@ public partial class ComplexClass01(StructId id, string name, Something somethin
 {
     [PrimaryKey] public StructId Id { get; set; } = id;
     public string Name { get; set; } = name;
-    
+
     public Something Something { get; set; } = Something.TypeA;
 
     public bool Equals(ComplexClass01? other)
@@ -143,21 +144,21 @@ public class Complex
             """
             [
                 {
-                    "Id": "1",
-                    "Name": "name1",
-                    "Something": "TypeB"
+                    "id": "1",
+                    "name": "name1",
+                    "something": "TypeB"
                 },
                 {
-                    "Id": "2",
-                    "Name": "name2",
-                    "Something": "TypeC"
+                    "id": "2",
+                    "name": "name2",
+                    "something": "TypeC"
                 }
             ]
             """;
 
         // Expected Schema
         var expectedSchema = new JsonSchemaBuilder()
-            .Schema(MetaSchemas.Draft7Id)
+            .Schema(MagusMetaSchemas.RelationExtId)
             .Type(SchemaValueType.Array)
             .Items(new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
@@ -166,16 +167,15 @@ public class Complex
                     ("name", new JsonSchemaBuilder().Type(SchemaValueType.String)),
                     ("something", new JsonSchemaBuilder().Enum(Enum.GetValues<Something>().Select(x => x.ToString())))
                 )
+                .AdditionalProperties(false)
             )
             .PrimaryKey("id")
             .Build();
 
-
-        var memoryStream = new MemoryStream();
-        JsonSchemaGenerator.GenerateArray<ComplexClass01>(memoryStream,
-            generators: new[] { new StructIdJsonGenerator() });
-        var schemaText = Encoding.UTF8.GetString(memoryStream.ToArray());
-        var schema = JsonSchema.FromText(schemaText);
+        // Generation
+        var schemaText =
+            MagusJsonSchema.GenerateArray<ComplexClass01>(generators: new[] { new StructIdJsonGenerator() });
+        var schema = MagusJsonSchema.FromText(schemaText);
 
         Assert.That(schemaText, Is.EqualTo(expectedSchema.ToJsonString()));
 
@@ -183,15 +183,25 @@ public class Complex
 
         // Serialization
         ValidatingJsonConverter.MapType<ComplexClass01[]>(schema);
-        var options = new JsonSerializerOptions
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
-            Converters = { new StructIdJsonConverter(), new ValidatingJsonConverter() }
+            Converters =
+            {
+                new StructIdJsonConverter(),
+                new JsonStringEnumConverter(),
+                new ValidatingJsonConverter(),
+            }
         };
         var jsonText = JsonSerializer.Serialize(expectedData, options);
 
         // Evaluation
         var node = JsonNode.Parse(expectedJson);
-        var result = schema.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        var result = schema.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical });
+        if (result.IsValid == false)
+        {
+            Console.WriteLine(result.ToJsonString());
+        }
+
         Assert.That(result.IsValid, Is.True);
 
         // Deserialization

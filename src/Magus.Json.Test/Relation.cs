@@ -8,6 +8,7 @@ using Json.Schema;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Intents;
 using Json.Schema.Serialization;
+using Magus.Json.Keywords;
 using MemoryPack;
 
 namespace Magus.Json.Test;
@@ -114,7 +115,7 @@ public class Relation
 
         // Expected Schema
         var expectedSchema = new JsonSchemaBuilder()
-            .Schema(MetaSchemas.Draft7Id)
+            .Schema(MagusMetaSchemas.RelationExtId)
             .Type(SchemaValueType.Array)
             .Items(new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
@@ -122,36 +123,36 @@ public class Relation
                     ("id", new JsonSchemaBuilder().Type(SchemaValueType.Integer).UniqueItems(true)),
                     ("relationAId", new JsonSchemaBuilder().Type(SchemaValueType.Integer))
                 )
+                .AdditionalProperties(false)
             )
             .PrimaryKey("id")
-            .Relations(new SchemaHelper.RelationInfo("relationAId",
+            .Relations(new RelationsKeyword.RelationInfo("relationAId",
                 nameof(RelationA).Camelize(),
                 nameof(RelationA.Id).Camelize())
             )
             .Build();
 
-        var memoryStream = new MemoryStream();
-        JsonSchemaGenerator.GenerateArray<RelationB>(memoryStream);
-        var schemaText = Encoding.UTF8.GetString(memoryStream.ToArray());
-        var schema = JsonSchema.FromText(schemaText);
-        
+        // Generation
+        var schemaText = MagusJsonSchema.GenerateArray<RelationB>();
+        var schema = MagusJsonSchema.FromText(schemaText);
+
         Assert.That(schemaText, Is.EqualTo(expectedSchema.ToJsonString()));
-        
+
         Console.WriteLine(schemaText);
-        
+
         // Serialization
         ValidatingJsonConverter.MapType<RelationB[]>(schema);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
-            Converters = { new ValidatingJsonConverter() }
+            Converters = { new ValidatingJsonConverter() },
         };
         var jsonText = JsonSerializer.Serialize(expectedData, options);
-        
+
         // Evaluation
         var node = JsonNode.Parse(expectedJson);
         var result = schema.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
         Assert.That(result.IsValid, Is.True);
-        
+
         // Deserialization
         var actualData = JsonSerializer.Deserialize<RelationB[]>(jsonText, options);
         Assert.That(actualData, Is.EquivalentTo(expectedData));

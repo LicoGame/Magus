@@ -15,8 +15,8 @@ namespace Magus.Json
 
         public void Apply(JsonSchemaBuilder builder)
         {
-            JsonObject obj = new JsonObject { { "field", _fieldName } };
-            builder.Unrecognized("primaryKey", obj);
+            JsonObject obj = new JsonObject { { PrimaryKeyKeyword.Field, _fieldName } };
+            builder.Unrecognized(PrimaryKeyKeyword.Name, obj);
         }
     }
 }

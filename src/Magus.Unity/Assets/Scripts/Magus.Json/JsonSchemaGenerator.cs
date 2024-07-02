@@ -8,6 +8,7 @@ using System.Text.Json;
 using Json.Schema;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Generators;
+using MemoryPack;
 
 namespace Magus.Json
 {
@@ -91,6 +92,7 @@ namespace Magus.Json
             var configuration = new SchemaGeneratorConfiguration();
             configuration.Refiners.Add(new MagusRefiner());
             configuration.PropertyNameResolver = PropertyNameResolvers.CamelCase;
+            configuration.Generators.Add(new MemoryPackUnionGenerator());
             configuration.Optimize = false;
             return configuration;
         }
@@ -134,10 +136,12 @@ namespace Magus.Json
             AttributeHandler.AddHandler<PrimaryKeyAttributeHandler>();
             AttributeHandler.RemoveHandler<RelationAttributeHandler>();
             AttributeHandler.AddHandler<RelationAttributeHandler>();
+            AttributeHandler.RemoveHandler<MemoryPackableAttributeHandler>();
+            AttributeHandler.AddHandler<MemoryPackableAttributeHandler>();
 
             var builder = new JsonSchemaBuilder();
             var schema = builder
-                .Schema(MetaSchemas.Draft7Id)
+                .Schema(MagusMetaSchemas.RelationExtId)
                 .FromType(type, configuration)
                 .Build();
             var converter = new SchemaJsonConverter();

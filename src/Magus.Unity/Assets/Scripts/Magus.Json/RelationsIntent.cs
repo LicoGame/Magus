@@ -23,19 +23,19 @@ namespace Magus.Json
             {
                 JsonObject obj = new JsonObject
                 {
-                    { "from", relation.FromFieldName.Camelize() },
+                    { RelationsKeyword.From, relation.FromFieldName.Camelize() },
                     {
-                        "to", new JsonObject
+                        RelationsKeyword.To, new JsonObject
                         {
-                            { "table", relation.ToTableName.Camelize() },
-                            { "field", relation.ToFieldName.Camelize() }
+                            { RelationsKeyword.Table, relation.ToTableName.Camelize() },
+                            { RelationsKeyword.Field, relation.ToFieldName.Camelize() }
                         }
                     }
                 };
                 array.Add(obj);
             }
 
-            builder.Unrecognized("relations", array);
+            builder.Unrecognized(RelationsKeyword.Name, array);
         }
     }
 }
