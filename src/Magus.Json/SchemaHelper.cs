@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using Magus.Json.Keywords;
 
 namespace Magus.Json
 {
@@ -11,44 +12,33 @@ namespace Magus.Json
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static JsonSchemaBuilder PrimaryKey(this JsonSchemaBuilder builder, string fieldName)
         {
-            return builder.Unrecognized("primaryKey", new JsonObject { { "field", fieldName } });
-        }
-
-        public readonly struct RelationInfo
-        {
-            public RelationInfo(string fromFieldName, string toTableName, string toFieldName)
-            {
-                FromFieldName = fromFieldName;
-                ToTableName = toTableName;
-                ToFieldName = toFieldName;
-            }
-
-            public readonly string FromFieldName;
-            public readonly string ToTableName;
-            public readonly string ToFieldName;
+            builder.Add(new PrimaryKeyKeyword(fieldName));
+            return builder;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static JsonSchemaBuilder Relations(this JsonSchemaBuilder builder, params RelationInfo[] relations)
+        public static JsonSchemaBuilder Relations(this JsonSchemaBuilder builder, params RelationsKeyword.RelationInfo[] relations)
         {
-            return builder.Unrecognized("relations", new JsonArray(
-                    relations.Select(x =>
-                    {
-                        JsonNode node = new JsonObject
-                        {
-                            { "from", x.FromFieldName },
-                            {
-                                "to", new JsonObject
-                                {
-                                    { "table", x.ToTableName },
-                                    { "field", x.ToFieldName }
-                                }
-                            }
-                        };
-                        return node;
-                    }).ToArray()
-                )
-            );
+            builder.Add(new RelationsKeyword(relations));
+            return builder;
+            // return builder.Unrecognized("relations", new JsonArray(
+            //         relations.Select(x =>
+            //         {
+            //             JsonNode node = new JsonObject
+            //             {
+            //                 { "from", x.FromFieldName },
+            //                 {
+            //                     "to", new JsonObject
+            //                     {
+            //                         { "table", x.ToTableName },
+            //                         { "field", x.ToFieldName }
+            //                     }
+            //                 }
+            //             };
+            //             return node;
+            //         }).ToArray()
+            //     )
+            // );
         }
     }
 }

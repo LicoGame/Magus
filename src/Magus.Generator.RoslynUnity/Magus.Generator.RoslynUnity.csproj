@@ -15,6 +15,7 @@
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
         <IsPackable>false</IsPackable>
         <DefineConstants>ROSLYN_UNITY</DefineConstants>
+        <Deterministic>true</Deterministic>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="../Magus.Generator/**/*.cs" Exclude="**/obj/**;**/MagusGenerator.cs"/>

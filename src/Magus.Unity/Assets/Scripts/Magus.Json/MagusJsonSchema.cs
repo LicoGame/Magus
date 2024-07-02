@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Json.Schema;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Generators;
@@ -12,7 +14,7 @@ using MemoryPack;
 
 namespace Magus.Json
 {
-    public class JsonSchemaGenerator
+    public class MagusJsonSchema
     {
 #if NET8_0_OR_GREATER
         [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
@@ -87,6 +89,17 @@ namespace Magus.Json
             GenerateInternal(arrayT, stream, generators: generators, refiners: refiners);
         }
         
+#if NET8_0_OR_GREATER
+        [RequiresDynamicCode("This method uses reflection to query types and is not suited for AOT scenarios.")]
+#endif
+        public static string GenerateArray<T>(IReadOnlyCollection<ISchemaGenerator>? generators = null,
+            IReadOnlyCollection<ISchemaRefiner>? refiners = null)
+        {
+            using var stream = new MemoryStream();
+            GenerateArray<T>(stream, generators, refiners);
+            return Encoding.UTF8.GetString(stream.ToArray());
+        }
+        
         private static SchemaGeneratorConfiguration GetConfiguration()
         {
             var configuration = new SchemaGeneratorConfiguration();
@@ -127,8 +140,11 @@ namespace Magus.Json
             serializerOptions ??= new JsonSerializerOptions(JsonSerializerDefaults.Web)
             {
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                TypeInfoResolver = JsonSchemaRelationExtSerializerContext.Default,
                 WriteIndented = true
             };
+            
+            MagusVocabularies.Register();
 
             // NOTE: Mark as using type signature for IL2CPP on Unity
             // But these don't work for AOT scenarios
@@ -146,8 +162,15 @@ namespace Magus.Json
                 .Build();
             var converter = new SchemaJsonConverter();
             using var writer = new Utf8JsonWriter(stream, writerOptions.Value);
+            serializerOptions.MakeReadOnly();
             converter.Write(writer, schema, serializerOptions);
             writer.Flush();
+        }
+
+        public static JsonSchema FromText(string jsonText)
+        {
+            MagusVocabularies.Register();
+            return JsonSchema.FromText(jsonText);
         }
     }
 }

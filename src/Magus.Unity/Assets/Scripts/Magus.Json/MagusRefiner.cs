@@ -2,6 +2,7 @@
 using System.Linq;
 using Json.Schema.Generation;
 using Json.Schema.Generation.Intents;
+using Magus.Json.Keywords;
 
 namespace Magus.Json
 {
@@ -58,7 +59,7 @@ namespace Magus.Json
                 context.Intents.Add(new RelationsIntent(relationContexts.Select(x =>
                 {
                     var relation = x.Context.GetAttributes().OfType<RelationAttribute>().FirstOrDefault();
-                    return new SchemaHelper.RelationInfo(x.Name, relation!.TableName, relation.FieldName);
+                    return new RelationsKeyword.RelationInfo(x.Name, relation!.TableName, relation.FieldName);
                 })));
             }
         }

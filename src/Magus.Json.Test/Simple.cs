@@ -71,7 +71,7 @@ public class Simple
 
         // Expected Schema
         var expectedSchema = new JsonSchemaBuilder()
-            .Schema(MetaSchemas.Draft7Id)
+            .Schema(MagusMetaSchemas.RelationExtId)
             .Type(SchemaValueType.Array)
             .Items(new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
@@ -80,13 +80,12 @@ public class Simple
                     ("name", new JsonSchemaBuilder().Type(SchemaValueType.String).ReadOnly(true)),
                     ("score", new JsonSchemaBuilder().Type(SchemaValueType.Integer).ReadOnly(true))
                 )
+                .AdditionalProperties(false)
             )
             .PrimaryKey("id")
             .Build();
 
-        var memoryStream = new MemoryStream();
-        JsonSchemaGenerator.GenerateArray<SimpleClass01>(memoryStream);
-        var schemaText = Encoding.UTF8.GetString(memoryStream.ToArray());
+        var schemaText = MagusJsonSchema.GenerateArray<SimpleClass01>();
         var schema = JsonSchema.FromText(schemaText);
 
         Assert.That(schemaText, Is.EqualTo(expectedSchema.ToJsonString()));
